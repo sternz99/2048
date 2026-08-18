@@ -507,21 +507,32 @@ hr {
   -moz-animation-fill-mode: backwards;
   animation-fill-mode: backwards; }
 
+.above-game {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px 8px; }
+
 .above-game:after {
   content: "";
   display: block;
   clear: both; }
 
 .game-intro {
-  float: left;
+  flex: 1 1 180px;
+  float: none;
   line-height: 42px;
   margin-bottom: 0; }
 
 .game-controls {
-  float: right;
   display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
   gap: 8px;
-  align-items: center; }
+  align-items: center;
+  max-width: 100%;
+  margin-left: auto; }
 
 .ai-strategy-control,
 .ai-speed-control {
@@ -530,7 +541,8 @@ hr {
   gap: 6px;
   color: #8f7a66;
   font-size: 14px;
-  line-height: 1; }
+  line-height: 1;
+  white-space: nowrap; }
 
 .ai-strategy-select,
 .ai-speed-select {
@@ -539,12 +551,15 @@ hr {
   border: 1px solid #bbada0;
   border-radius: 3px;
   background: #fff;
-  color: #776e65; }
+  color: #776e65;
+  min-width: 0; }
 
 .ai-tuning-panel {
-  margin-top: 12px;
+  width: 100%;
+  margin-top: 0;
   display: flex;
   flex-wrap: wrap;
+  justify-content: flex-end;
   gap: 12px; }
 
 .ai-tuning-control {
@@ -553,7 +568,8 @@ hr {
   gap: 8px;
   color: #8f7a66;
   font-size: 13px;
-  line-height: 1; }
+  line-height: 1;
+  white-space: nowrap; }
 
 .ai-tuning-slider {
   width: 120px; }
@@ -621,16 +637,25 @@ hr {
     margin-bottom: 10px; }
 
   .game-intro {
-    width: 55%;
+    width: 100%;
     display: block;
     box-sizing: border-box;
-    line-height: 1.65; }
+    line-height: 1.65;
+    float: none; }
 
   .game-controls {
-    width: 42%;
+    width: 100%;
+    float: none;
     display: flex;
     flex-direction: column;
+    align-items: stretch;
     gap: 6px; }
+
+  .ai-strategy-control,
+  .ai-speed-control,
+  .ai-tuning-control {
+    width: 100%;
+    justify-content: space-between; }
 
   .ai-button,
   .restart-button {
@@ -639,6 +664,12 @@ hr {
     display: block;
     box-sizing: border-box;
     margin-top: 0; }
+
+  .ai-tuning-panel {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 8px; }
 
   .game-container {
     margin-top: 17px;
