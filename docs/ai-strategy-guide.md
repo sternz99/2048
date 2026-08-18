@@ -29,8 +29,8 @@ The AI panel exposes a small set of tuning controls:
 ### Heuristic bias
 
 - Range: 0.5x to 2.0x
-- Purpose: scales the evaluation terms such as empty cells, monotonicity, merge potential, and corner preference.
-- Practical effect: higher values emphasize stronger board quality and can make the AI prefer more structured, higher-potential positions; lower values make the heuristic gentler and often faster to compute.
+- Purpose: scales long-term board-quality terms such as empty cells, smoothness, monotonicity, merge potential, and corner preference. Immediate merge score and maximum-tile value remain independent, so changing the bias can alter which move is preferred.
+- Practical effect: higher values favor structured positions with more room and future merge opportunities over an immediate score gain. This preference also grows as the score or maximum tile rises, when preserving a viable board becomes more important.
 
 Suggested starting points:
 - 1.0x: balanced default

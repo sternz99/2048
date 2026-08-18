@@ -284,16 +284,21 @@ AIManager.prototype.evaluateState = function (state) {
   var maxTile = this.computeMaxTile(values);
   var cornerBonus = this.computeCornerBonus(values, maxTile);
   var mergePotential = this.computeMergePotential(values);
-
   var heuristicBias = this.settings.heuristicBias || 1;
+  var progress = Math.max(
+    this.log2(maxTile || 1) / 11,
+    Math.min(state.score / 20000, 1)
+  );
+  var structureWeight = heuristicBias * (1 + progress);
+  var structureScore = emptyCells * 320 +
+    smoothness * 4 +
+    monotonicity * 12 +
+    cornerBonus * 6 +
+    mergePotential * 20;
 
-  return emptyCells * 320 * heuristicBias +
-    smoothness * 4 * heuristicBias +
-    monotonicity * 12 * heuristicBias +
-    maxTile * 2 * heuristicBias +
-    cornerBonus * 6 * heuristicBias +
-    mergePotential * 20 * heuristicBias +
-    state.score * heuristicBias;
+  return structureScore * structureWeight +
+    maxTile * 2 +
+    state.score;
 };
 
 AIManager.prototype.computeSmoothness = function (values) {
