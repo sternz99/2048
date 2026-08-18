@@ -59,6 +59,12 @@ KeyboardInputManager.prototype.listen = function () {
       if (mapped !== undefined) {
         event.preventDefault();
         self.emit("move", mapped);
+        return;
+      }
+
+      if (event.which === 32) {
+        event.preventDefault();
+        self.emit("toggleAI");
       }
     }
 

@@ -45,6 +45,13 @@ GameManager.prototype.toggleAI = function () {
   }
 };
 
+GameManager.prototype.pauseAI = function () {
+  if (this.aiManager && this.aiManager.running) {
+    this.aiManager.stop();
+    this.setAiStatus(false, "AI paused for manual move");
+  }
+};
+
 GameManager.prototype.setAiStatus = function (enabled, status) {
   this.aiEnabled = enabled;
   this.aiStatus = status;
@@ -157,8 +164,13 @@ GameManager.prototype.moveTile = function (tile, cell) {
 GameManager.prototype.move = function (direction) {
   // 0: up, 1: right, 2: down, 3: left
   var self = this;
+  var aiWasRunning = this.aiManager && this.aiManager.running;
 
   if (this.isGameTerminated()) return; // Don't do anything if the game's over
+
+  if (aiWasRunning) {
+    this.pauseAI();
+  }
 
   var cell, tile;
 

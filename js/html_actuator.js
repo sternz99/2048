@@ -41,6 +41,7 @@ HTMLActuator.prototype.actuate = function (grid, metadata) {
 HTMLActuator.prototype.updateAI = function (enabled, status) {
   if (this.aiButton) {
     this.aiButton.textContent = enabled ? "Stop AI" : "Start AI";
+    this.aiButton.setAttribute("aria-pressed", enabled ? "true" : "false");
   }
 
   if (this.aiStatusLabel) {
