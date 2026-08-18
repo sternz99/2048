@@ -28,8 +28,16 @@ function createElement(name) {
   };
 }
 
-function createHarness() {
+function createHarness(seed) {
   const elements = {};
+  const seededMath = Object.create(Math);
+  let randomState = seed >>> 0;
+
+  seededMath.random = function () {
+    randomState = (randomState * 1664525 + 1013904223) >>> 0;
+    return randomState / 4294967296;
+  };
+
   const document = {
     querySelector: function (selector) {
       if (!elements[selector]) {
@@ -48,7 +56,7 @@ function createHarness() {
   const context = {
     console: console,
     JSON: JSON,
-    Math: Math,
+    Math: seededMath,
     Date: Date,
     setTimeout: setTimeout,
     clearTimeout: clearTimeout,
@@ -70,7 +78,7 @@ function createHarness() {
   context.window.document = document;
   context.window.window = context.window;
   context.window.console = console;
-  context.window.Math = Math;
+  context.window.Math = seededMath;
   context.window.JSON = JSON;
   vm.createContext(context);
 
@@ -104,8 +112,8 @@ function getGridMaxTile(grid) {
   return maxTile;
 }
 
-function runGame(depth, label, speed, strategy) {
-  const context = createHarness();
+function runGame(depth, label, speed, strategy, heuristicBias, seed, maxMoves) {
+  const context = createHarness(seed);
   const gameManager = new context.GameManager(
     4,
     context.KeyboardInputManager,
@@ -119,12 +127,15 @@ function runGame(depth, label, speed, strategy) {
   if (strategy) {
     aiManager.setStrategy(strategy);
   }
+  if (heuristicBias) {
+    aiManager.setConfig({ heuristicBias: heuristicBias });
+  }
   gameManager.setAIManager(aiManager);
 
   let moveCount = 0;
   const start = Date.now();
 
-  while (!gameManager.isGameTerminated() && moveCount < 160) {
+  while (!gameManager.isGameTerminated() && moveCount < maxMoves) {
     const bestMove = aiManager.findBestMove(depth);
     if (bestMove === null || bestMove === undefined) {
       break;
@@ -144,7 +155,9 @@ function runGame(depth, label, speed, strategy) {
     maxTile: maxTile,
     elapsedMs: elapsed,
     speed: speed || "normal",
-    strategy: strategy || aiManager.strategy
+    strategy: strategy || aiManager.strategy,
+    heuristicBias: heuristicBias || aiManager.settings.heuristicBias,
+    seed: seed
   };
 }
 
@@ -153,6 +166,9 @@ function runProfile() {
   const depth = Number(process.argv[3] || 2);
   const requestedSpeed = (process.argv[4] || "all").toLowerCase();
   const requestedStrategy = (process.argv[5] || "all").toLowerCase();
+  const heuristicBias = Number(process.argv[6] || 1);
+  const seed = Number(process.argv[7] || 2048);
+  const maxMoves = Number(process.argv[8] || 160);
   const speeds = requestedSpeed === "all" ? ["slow", "normal", "fast"] : [requestedSpeed];
   const strategies = requestedStrategy === "all" ? ["heuristic", "expectimax"] : [requestedStrategy];
   const results = [];
@@ -165,7 +181,15 @@ function runProfile() {
       let maxMaxTile = 0;
 
       for (let i = 0; i < runCount; i++) {
-        const result = runGame(depth, strategy + "-" + speed + "-run-" + (i + 1), speed, strategy);
+        const result = runGame(
+          depth,
+          strategy + "-" + speed + "-run-" + (i + 1),
+          speed,
+          strategy,
+          heuristicBias,
+          seed + i,
+          maxMoves
+        );
         results.push(result);
         totalMoves += result.moves;
         totalScore += result.score;
@@ -178,6 +202,9 @@ function runProfile() {
         speed: speed,
         runs: runCount,
         depth: depth,
+        heuristicBias: heuristicBias,
+        seed: seed,
+        maxMoves: maxMoves,
         averageMoves: (totalMoves / runCount).toFixed(1),
         averageScore: (totalScore / runCount).toFixed(1),
         averageMs: (totalElapsed / runCount).toFixed(1),
