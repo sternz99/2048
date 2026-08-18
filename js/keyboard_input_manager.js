@@ -174,6 +174,22 @@ KeyboardInputManager.prototype.bindSelectChange = function (selector, eventName)
   });
 };
 
+KeyboardInputManager.prototype.updateRangeOutput = function (input, configKey) {
+  var output = document.querySelector("output[for='" + input.id + "']");
+  if (!output) {
+    return;
+  }
+
+  var value = Number(input.value);
+
+  if (configKey === "heuristicBias") {
+    output.textContent = value.toFixed(1) + "x";
+    return;
+  }
+
+  output.textContent = String(Math.round(value));
+};
+
 KeyboardInputManager.prototype.bindRangeInput = function (selector, eventName, configKey) {
   var input = document.querySelector(selector);
   if (!input) {
@@ -181,9 +197,12 @@ KeyboardInputManager.prototype.bindRangeInput = function (selector, eventName, c
   }
 
   var self = this;
+  this.updateRangeOutput(input, configKey);
+
   input.addEventListener("input", function (event) {
     var payload = {};
     payload[configKey] = event.target.value;
+    self.updateRangeOutput(event.target, configKey);
     self.emit(eventName, payload);
   });
 };

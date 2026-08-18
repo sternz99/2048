@@ -205,6 +205,27 @@ function testConfigurableStrategySettings() {
   assert(aiManager.settings.expectimaxDepth === 3, "expected expectimax depth to update");
 }
 
+function testRangeOutputDisplaysCurrentValue() {
+  const context = createHarness();
+  const keyboardInputManager = new context.KeyboardInputManager();
+
+  const heuristicInput = context.document.querySelector("#ai-heuristic-bias");
+  heuristicInput.id = "ai-heuristic-bias";
+  heuristicInput.value = "1.7";
+  keyboardInputManager.updateRangeOutput(heuristicInput, "heuristicBias");
+
+  const depthInput = context.document.querySelector("#ai-expectimax-depth");
+  depthInput.id = "ai-expectimax-depth";
+  depthInput.value = "3";
+  keyboardInputManager.updateRangeOutput(depthInput, "expectimaxDepth");
+
+  const heuristicOutput = context.document.querySelector("output[for='ai-heuristic-bias']");
+  const depthOutput = context.document.querySelector("output[for='ai-expectimax-depth']");
+
+  assert(heuristicOutput.textContent === "1.7x", "expected heuristic slider output to show the current value");
+  assert(depthOutput.textContent === "3", "expected depth slider output to show the current value");
+}
+
 function testNoLegalMoveReturnsNull() {
   const context = createHarness();
   const gameManager = new context.GameManager(
@@ -255,6 +276,7 @@ function run() {
   testExpectimaxFindsLegalMove();
   testHeuristicStrategyFindsLegalMove();
   testConfigurableStrategySettings();
+  testRangeOutputDisplaysCurrentValue();
   testNoLegalMoveReturnsNull();
   testAIMoveDoesNotPauseItself();
   console.log("ai smoke tests passed");
