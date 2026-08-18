@@ -2,8 +2,14 @@ function AIManager(gameManager) {
   this.gameManager = gameManager;
   this.running = false;
   this.timer = null;
-  this.moveDelay = 120;
-  this.searchDepth = 3;
+  this.baseMoveDelay = 90;
+  this.busy = false;
+  this.speed = "normal";
+  this.speedProfiles = {
+    slow: 150,
+    normal: 90,
+    fast: 60
+  };
 }
 
 AIManager.prototype.start = function () {
@@ -18,6 +24,7 @@ AIManager.prototype.start = function () {
 
 AIManager.prototype.stop = function () {
   this.running = false;
+  this.busy = false;
 
   if (this.timer !== null) {
     window.clearTimeout(this.timer);
@@ -35,20 +42,40 @@ AIManager.prototype.toggle = function () {
   }
 };
 
+AIManager.prototype.setSpeed = function (speed) {
+  if (!this.speedProfiles[speed]) {
+    return;
+  }
+
+  this.speed = speed;
+
+  if (this.running) {
+    if (this.timer !== null) {
+      window.clearTimeout(this.timer);
+      this.timer = null;
+    }
+    this.gameManager.setAiStatus(true, "AI running");
+    this.scheduleNextMove();
+  }
+};
+
 AIManager.prototype.scheduleNextMove = function () {
   var self = this;
+  var delay = this.getMoveDelay();
 
   if (!this.running) {
     return;
   }
 
+  this.timer = null;
   this.timer = window.setTimeout(function () {
     self.step();
-  }, this.moveDelay);
+  }, delay);
 };
 
 AIManager.prototype.step = function () {
   var bestMove;
+  var searchDepth;
 
   if (!this.running) {
     return;
@@ -60,7 +87,12 @@ AIManager.prototype.step = function () {
     return;
   }
 
-  bestMove = this.findBestMove();
+  this.busy = true;
+  searchDepth = this.getSearchDepth();
+  this.gameManager.setAiStatus(true, "AI thinking (depth " + searchDepth + ")");
+
+  bestMove = this.findBestMove(searchDepth);
+  this.busy = false;
 
   if (bestMove === null || bestMove === undefined) {
     this.stop();
@@ -68,28 +100,30 @@ AIManager.prototype.step = function () {
     return;
   }
 
-  this.gameManager.move(bestMove);
+  this.gameManager.move(bestMove, true);
 
   if (this.running) {
+    this.gameManager.setAiStatus(true, "AI running");
     this.scheduleNextMove();
   }
 };
 
-AIManager.prototype.findBestMove = function () {
+AIManager.prototype.findBestMove = function (depth) {
   var bestDirection = null;
   var bestScore = -Infinity;
   var directions = [0, 1, 2, 3];
+  var currentState = this.gameManager.serialize();
 
   for (var i = 0; i < directions.length; i++) {
     var direction = directions[i];
-    var result = this.gameManager.simulateMove(this.gameManager.serialize(), direction);
+    var result = this.gameManager.simulateMove(currentState, direction);
     var score;
 
     if (!result.moved) {
       continue;
     }
 
-    score = this.expectimaxChance(result.state, this.searchDepth - 1);
+    score = this.expectimaxChance(result.state, depth - 1);
 
     if (score > bestScore) {
       bestScore = score;
@@ -135,20 +169,25 @@ AIManager.prototype.expectimaxChance = function (state, depth) {
   var cells = this.gameManager.availableCellsFromState(state);
   var total = 0;
   var probabilityPerCell;
+  var sampledCells = cells;
 
   if (!cells.length) {
     return this.expectimaxMove(state, depth);
   }
 
-  probabilityPerCell = 1 / cells.length;
+  if (cells.length > 6) {
+    sampledCells = this.sampleCells(cells, state);
+  }
 
-  for (var i = 0; i < cells.length; i++) {
+  probabilityPerCell = 1 / sampledCells.length;
+
+  for (var i = 0; i < sampledCells.length; i++) {
     total += probabilityPerCell * 0.9 * this.expectimaxMove(
-      this.gameManager.addTileToState(state, cells[i], 2),
+      this.gameManager.addTileToState(state, sampledCells[i], 2),
       depth
     );
     total += probabilityPerCell * 0.1 * this.expectimaxMove(
-      this.gameManager.addTileToState(state, cells[i], 4),
+      this.gameManager.addTileToState(state, sampledCells[i], 4),
       depth
     );
   }
@@ -163,12 +202,14 @@ AIManager.prototype.evaluateState = function (state) {
   var monotonicity = this.computeMonotonicity(values);
   var maxTile = this.computeMaxTile(values);
   var cornerBonus = this.computeCornerBonus(values, maxTile);
+  var mergePotential = this.computeMergePotential(values);
 
-  return emptyCells * 270 +
-    smoothness * 0.2 +
-    monotonicity * 1.1 +
-    maxTile * 1.0 +
-    cornerBonus * 1.6 +
+  return emptyCells * 320 +
+    smoothness * 4 +
+    monotonicity * 12 +
+    maxTile * 2 +
+    cornerBonus * 6 +
+    mergePotential * 20 +
     state.score;
 };
 
@@ -258,6 +299,68 @@ AIManager.prototype.computeCornerBonus = function (values, maxTile) {
   }
 
   return 0;
+};
+
+AIManager.prototype.computeMergePotential = function (values) {
+  var score = 0;
+
+  for (var x = 0; x < values.length; x++) {
+    for (var y = 0; y < values[x].length; y++) {
+      var value = values[x][y];
+
+      if (!value) {
+        continue;
+      }
+
+      if (x + 1 < values.length && values[x + 1][y] === value) {
+        score += this.log2(value);
+      }
+
+      if (y + 1 < values[x].length && values[x][y + 1] === value) {
+        score += this.log2(value);
+      }
+    }
+  }
+
+  return score;
+};
+
+AIManager.prototype.getSearchDepth = function () {
+  var emptyCells = this.gameManager.grid.availableCells().length;
+  var baseDepth = emptyCells >= 10 ? 3 : 2;
+
+  if (this.speed === "slow") {
+    return Math.min(4, baseDepth + 1);
+  }
+
+  if (this.speed === "fast") {
+    return Math.max(1, baseDepth - 1);
+  }
+
+  return baseDepth;
+};
+
+AIManager.prototype.getMoveDelay = function () {
+  var emptyCells = this.gameManager.grid.availableCells().length;
+  var baseDelay = this.speedProfiles[this.speed] || this.speedProfiles.normal;
+
+  if (emptyCells <= 2) {
+    return baseDelay + 75;
+  }
+
+  if (emptyCells <= 5) {
+    return baseDelay + 35;
+  }
+
+  return baseDelay;
+};
+
+AIManager.prototype.sampleCells = function (cells, state) {
+  var values = this.gameManager.getStateValues(state);
+
+  return cells.slice().sort(function (first, second) {
+    return values[second.x][second.y] - values[first.x][first.y];
+  }).slice(0, 6);
 };
 
 AIManager.prototype.log2 = function (value) {

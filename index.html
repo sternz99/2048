@@ -29,12 +29,20 @@
     <div class="above-game">
       <p class="game-intro">Join the numbers and get to the <strong>2048 tile!</strong></p>
       <div class="game-controls">
-        <a class="ai-button">Start AI</a>
+        <a class="ai-button" aria-label="Toggle AI autoplay">Start AI</a>
+        <label class="ai-speed-control" for="ai-speed-select">
+          <span>Speed</span>
+          <select id="ai-speed-select" class="ai-speed-select" aria-label="AI speed">
+            <option value="slow">Slow</option>
+            <option value="normal" selected>Normal</option>
+            <option value="fast">Fast</option>
+          </select>
+        </label>
         <a class="restart-button">New Game</a>
       </div>
     </div>
 
-    <p class="ai-status">AI stopped</p>
+    <p class="ai-status">AI stopped. Press Space to toggle autoplay.</p>
 
     <div class="game-container">
       <div class="game-message">
@@ -78,7 +86,7 @@
     </div>
 
     <p class="game-explanation">
-      <strong class="important">How to play:</strong> Use your <strong>arrow keys</strong> to move the tiles. When two tiles with the same number touch, they <strong>merge into one!</strong>
+      <strong class="important">How to play:</strong> Use your <strong>arrow keys</strong> to move the tiles. When two tiles with the same number touch, they <strong>merge into one!</strong> Press <strong>Space</strong> to start or stop AI autoplay.
     </p>
     <hr>
     <p>

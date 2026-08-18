@@ -14,6 +14,7 @@ function GameManager(size, InputManager, Actuator, StorageManager) {
   this.inputManager.on("restart", this.restart.bind(this));
   this.inputManager.on("keepPlaying", this.keepPlaying.bind(this));
   this.inputManager.on("toggleAI", this.toggleAI.bind(this));
+  this.inputManager.on("setAILevel", this.setAILevel.bind(this));
 
   this.setup();
 }
@@ -42,6 +43,19 @@ GameManager.prototype.setAIManager = function (aiManager) {
 GameManager.prototype.toggleAI = function () {
   if (this.aiManager) {
     this.aiManager.toggle();
+  }
+};
+
+GameManager.prototype.setAILevel = function (level) {
+  if (this.aiManager) {
+    this.aiManager.setSpeed(level);
+  }
+};
+
+GameManager.prototype.pauseAI = function () {
+  if (this.aiManager && this.aiManager.running) {
+    this.aiManager.stop();
+    this.setAiStatus(false, "AI paused for manual move");
   }
 };
 
@@ -154,11 +168,16 @@ GameManager.prototype.moveTile = function (tile, cell) {
 };
 
 // Move tiles on the grid in the specified direction
-GameManager.prototype.move = function (direction) {
+GameManager.prototype.move = function (direction, fromAI) {
   // 0: up, 1: right, 2: down, 3: left
   var self = this;
+  var aiWasRunning = this.aiManager && this.aiManager.running && !fromAI;
 
   if (this.isGameTerminated()) return; // Don't do anything if the game's over
+
+  if (aiWasRunning) {
+    this.pauseAI();
+  }
 
   var cell, tile;
 

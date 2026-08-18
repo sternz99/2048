@@ -520,7 +520,24 @@ hr {
 .game-controls {
   float: right;
   display: flex;
-  gap: 8px; }
+  gap: 8px;
+  align-items: center; }
+
+.ai-speed-control {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #8f7a66;
+  font-size: 14px;
+  line-height: 1; }
+
+.ai-speed-select {
+  font: inherit;
+  padding: 8px 10px;
+  border: 1px solid #bbada0;
+  border-radius: 3px;
+  background: #fff;
+  color: #776e65; }
 
 .ai-button {
   display: inline-block;
