@@ -104,7 +104,7 @@ function getGridMaxTile(grid) {
   return maxTile;
 }
 
-function runGame(depth, label, speed) {
+function runGame(depth, label, speed, strategy) {
   const context = createHarness();
   const gameManager = new context.GameManager(
     4,
@@ -115,6 +115,9 @@ function runGame(depth, label, speed) {
   const aiManager = new context.AIManager(gameManager);
   if (speed) {
     aiManager.speed = speed;
+  }
+  if (strategy) {
+    aiManager.setStrategy(strategy);
   }
   gameManager.setAIManager(aiManager);
 
@@ -140,7 +143,8 @@ function runGame(depth, label, speed) {
     score: gameManager.score,
     maxTile: maxTile,
     elapsedMs: elapsed,
-    speed: speed || "normal"
+    speed: speed || "normal",
+    strategy: strategy || aiManager.strategy
   };
 }
 
@@ -148,39 +152,44 @@ function runProfile() {
   const runCount = Number(process.argv[2] || 8);
   const depth = Number(process.argv[3] || 2);
   const requestedSpeed = (process.argv[4] || "all").toLowerCase();
+  const requestedStrategy = (process.argv[5] || "all").toLowerCase();
   const speeds = requestedSpeed === "all" ? ["slow", "normal", "fast"] : [requestedSpeed];
+  const strategies = requestedStrategy === "all" ? ["heuristic", "expectimax"] : [requestedStrategy];
   const results = [];
 
-  speeds.forEach(function (speed) {
-    let totalMoves = 0;
-    let totalScore = 0;
-    let totalElapsed = 0;
-    let maxMaxTile = 0;
+  strategies.forEach(function (strategy) {
+    speeds.forEach(function (speed) {
+      let totalMoves = 0;
+      let totalScore = 0;
+      let totalElapsed = 0;
+      let maxMaxTile = 0;
 
-    for (let i = 0; i < runCount; i++) {
-      const result = runGame(depth, speed + "-run-" + (i + 1), speed);
-      results.push(result);
-      totalMoves += result.moves;
-      totalScore += result.score;
-      totalElapsed += result.elapsedMs;
-      maxMaxTile = Math.max(maxMaxTile, result.maxTile);
-    }
+      for (let i = 0; i < runCount; i++) {
+        const result = runGame(depth, strategy + "-" + speed + "-run-" + (i + 1), speed, strategy);
+        results.push(result);
+        totalMoves += result.moves;
+        totalScore += result.score;
+        totalElapsed += result.elapsedMs;
+        maxMaxTile = Math.max(maxMaxTile, result.maxTile);
+      }
 
-    const summary = {
-      speed: speed,
-      runs: runCount,
-      depth: depth,
-      averageMoves: (totalMoves / runCount).toFixed(1),
-      averageScore: (totalScore / runCount).toFixed(1),
-      averageMs: (totalElapsed / runCount).toFixed(1),
-      maxTileReached: maxMaxTile
-    };
+      const summary = {
+        strategy: strategy,
+        speed: speed,
+        runs: runCount,
+        depth: depth,
+        averageMoves: (totalMoves / runCount).toFixed(1),
+        averageScore: (totalScore / runCount).toFixed(1),
+        averageMs: (totalElapsed / runCount).toFixed(1),
+        maxTileReached: maxMaxTile
+      };
 
-    console.log("AI profile summary for " + speed);
-    console.log(JSON.stringify(summary, null, 2));
+      console.log("AI profile summary for " + strategy + " / " + speed);
+      console.log(JSON.stringify(summary, null, 2));
+    });
   });
 
-  if (requestedSpeed === "all") {
+  if (requestedSpeed === "all" && requestedStrategy === "all") {
     console.log("AI profile comparison complete");
   }
 }

@@ -30,6 +30,13 @@
       <p class="game-intro">Join the numbers and get to the <strong>2048 tile!</strong></p>
       <div class="game-controls">
         <a class="ai-button" aria-label="Toggle AI autoplay">Start AI</a>
+        <label class="ai-strategy-control" for="ai-strategy-select">
+          <span>Strategy</span>
+          <select id="ai-strategy-select" class="ai-strategy-select" aria-label="AI strategy">
+            <option value="heuristic">Greedy Heuristic</option>
+            <option value="expectimax" selected>Expectimax Search</option>
+          </select>
+        </label>
         <label class="ai-speed-control" for="ai-speed-select">
           <span>Speed</span>
           <select id="ai-speed-select" class="ai-speed-select" aria-label="AI speed">

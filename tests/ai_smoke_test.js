@@ -167,9 +167,26 @@ function testExpectimaxFindsLegalMove() {
     context.LocalStorageManager
   );
   const aiManager = new context.AIManager(gameManager);
+  aiManager.setStrategy("expectimax");
   const move = aiManager.findBestMove(3);
 
   assert([0, 1, 2, 3].indexOf(move) !== -1, "expected expectimax to return a legal direction");
+}
+
+function testHeuristicStrategyFindsLegalMove() {
+  const context = createHarness();
+  const gameManager = new context.GameManager(
+    4,
+    context.KeyboardInputManager,
+    context.HTMLActuator,
+    context.LocalStorageManager
+  );
+  const aiManager = new context.AIManager(gameManager);
+  aiManager.setStrategy("heuristic");
+  const move = aiManager.findBestMove(1);
+
+  assert([0, 1, 2, 3].indexOf(move) !== -1, "expected heuristic strategy to return a legal direction");
+  assert(aiManager.getStrategyLabel() === "Greedy Heuristic", "expected heuristic to report Greedy Heuristic");
 }
 
 function testNoLegalMoveReturnsNull() {
@@ -220,6 +237,7 @@ function run() {
   testSimulateMoveMerge();
   testAddTileDoesNotMutateOriginal();
   testExpectimaxFindsLegalMove();
+  testHeuristicStrategyFindsLegalMove();
   testNoLegalMoveReturnsNull();
   testAIMoveDoesNotPauseItself();
   console.log("ai smoke tests passed");

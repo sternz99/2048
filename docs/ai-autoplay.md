@@ -4,7 +4,12 @@ This project includes an optional expectimax-based autoplay mode that can play t
 
 ## Design
 
-The AI evaluates candidate moves by simulating the next board state, then applying a chance node for the random tile spawn. This is a classic expectimax approach:
+The project supports two autoplay strategies, which the user can pick from the UI before starting AI play:
+
+- Greedy Heuristic: a fast agent that scores each legal move immediately by board quality and tile potential.
+- Expectimax Search: a search-based agent that simulates candidate moves and random tile spawns to maximize expected utility.
+
+For Expectimax Search, the AI evaluates candidate moves by simulating the next board state, then applying a chance node for the random tile spawn. This is a classic expectimax approach:
 
 - Player node: choose the move that maximizes the expected utility.
 - Chance node: after a move, a new tile is added at a random empty cell with 90% probability of a 2 and 10% probability of a 4.
