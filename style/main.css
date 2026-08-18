@@ -541,6 +541,28 @@ hr {
   background: #fff;
   color: #776e65; }
 
+.ai-tuning-panel {
+  margin-top: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px; }
+
+.ai-tuning-control {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #8f7a66;
+  font-size: 13px;
+  line-height: 1; }
+
+.ai-tuning-slider {
+  width: 120px; }
+
+.ai-tuning-value {
+  min-width: 38px;
+  text-align: right;
+  display: inline-block; }
+
 .ai-button {
   display: inline-block;
   background: #8f7a66;

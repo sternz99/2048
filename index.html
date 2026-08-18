@@ -47,6 +47,19 @@
         </label>
         <a class="restart-button">New Game</a>
       </div>
+
+      <div class="ai-tuning-panel">
+        <label class="ai-tuning-control" for="ai-heuristic-bias">
+          <span>Heuristic bias</span>
+          <input id="ai-heuristic-bias" class="ai-tuning-slider" type="range" min="0.5" max="2" step="0.1" value="1" />
+          <output for="ai-heuristic-bias" class="ai-tuning-value">1.0x</output>
+        </label>
+        <label class="ai-tuning-control" for="ai-expectimax-depth">
+          <span>Search depth</span>
+          <input id="ai-expectimax-depth" class="ai-tuning-slider" type="range" min="1" max="4" step="1" value="2" />
+          <output for="ai-expectimax-depth" class="ai-tuning-value">2</output>
+        </label>
+      </div>
     </div>
 
     <p class="ai-status">AI stopped. Press Space to toggle autoplay.</p>
