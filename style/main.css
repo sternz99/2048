@@ -517,6 +517,22 @@ hr {
   line-height: 42px;
   margin-bottom: 0; }
 
+.game-controls {
+  float: right;
+  display: flex;
+  gap: 8px; }
+
+.ai-button {
+  display: inline-block;
+  background: #8f7a66;
+  border-radius: 3px;
+  padding: 0 20px;
+  text-decoration: none;
+  color: #f9f6f2;
+  height: 40px;
+  line-height: 42px;
+  text-align: center; }
+
 .restart-button {
   display: inline-block;
   background: #8f7a66;
@@ -526,9 +542,15 @@ hr {
   color: #f9f6f2;
   height: 40px;
   line-height: 42px;
-  display: block;
+  display: inline-block;
   text-align: center;
-  float: right; }
+  float: none; }
+
+.ai-status {
+  margin-top: 12px;
+  margin-bottom: 0;
+  font-size: 16px;
+  color: #8f7a66; }
 
 .game-explanation {
   margin-top: 50px; }
@@ -563,12 +585,19 @@ hr {
     box-sizing: border-box;
     line-height: 1.65; }
 
-  .restart-button {
+  .game-controls {
     width: 42%;
+    display: flex;
+    flex-direction: column;
+    gap: 6px; }
+
+  .ai-button,
+  .restart-button {
+    width: 100%;
     padding: 0;
     display: block;
     box-sizing: border-box;
-    margin-top: 2px; }
+    margin-top: 0; }
 
   .game-container {
     margin-top: 17px;

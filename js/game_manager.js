@@ -3,18 +3,27 @@ function GameManager(size, InputManager, Actuator, StorageManager) {
   this.inputManager   = new InputManager;
   this.storageManager = new StorageManager;
   this.actuator       = new Actuator;
+  this.simulator      = new GameSimulator;
 
   this.startTiles     = 2;
+  this.aiEnabled      = false;
+  this.aiStatus       = "AI stopped";
+  this.aiManager      = null;
 
   this.inputManager.on("move", this.move.bind(this));
   this.inputManager.on("restart", this.restart.bind(this));
   this.inputManager.on("keepPlaying", this.keepPlaying.bind(this));
+  this.inputManager.on("toggleAI", this.toggleAI.bind(this));
 
   this.setup();
 }
 
 // Restart the game
 GameManager.prototype.restart = function () {
+  if (this.aiManager) {
+    this.aiManager.stop();
+  }
+
   this.storageManager.clearGameState();
   this.actuator.continueGame(); // Clear the game won/lost message
   this.setup();
@@ -24,6 +33,22 @@ GameManager.prototype.restart = function () {
 GameManager.prototype.keepPlaying = function () {
   this.keepPlaying = true;
   this.actuator.continueGame(); // Clear the game won/lost message
+};
+
+GameManager.prototype.setAIManager = function (aiManager) {
+  this.aiManager = aiManager;
+};
+
+GameManager.prototype.toggleAI = function () {
+  if (this.aiManager) {
+    this.aiManager.toggle();
+  }
+};
+
+GameManager.prototype.setAiStatus = function (enabled, status) {
+  this.aiEnabled = enabled;
+  this.aiStatus = status;
+  this.actuate();
 };
 
 // Return true if the game is lost, or has won and the user hasn't kept playing
@@ -93,7 +118,9 @@ GameManager.prototype.actuate = function () {
     over:       this.over,
     won:        this.won,
     bestScore:  this.storageManager.getBestScore(),
-    terminated: this.isGameTerminated()
+    terminated: this.isGameTerminated(),
+    aiEnabled:  this.aiEnabled,
+    aiStatus:   this.aiStatus
   });
 
 };
@@ -188,6 +215,137 @@ GameManager.prototype.move = function (direction) {
 
     this.actuate();
   }
+};
+
+GameManager.prototype.availableCellsFromState = function (state) {
+  return this.simulator.availableCells(state);
+};
+
+GameManager.prototype.addTileToState = function (state, cell, value) {
+  return this.simulator.addTile(state, cell, value);
+};
+
+GameManager.prototype.getStateValues = function (state) {
+  return this.simulator.getValues(state);
+};
+
+GameManager.prototype.simulateMove = function (state, direction) {
+  var nextState = this.simulator.cloneState(state);
+  var vector = this.getVector(direction);
+  var traversals = this.buildTraversals(vector);
+  var moved = false;
+  var self = this;
+
+  traversals.x.forEach(function (x) {
+    traversals.y.forEach(function (y) {
+      var cell = { x: x, y: y };
+      var tile = self.getStateCellContent(nextState, cell);
+
+      if (!tile) {
+        return;
+      }
+
+      var positions = self.findFarthestStatePosition(nextState, cell, vector);
+      var next = self.getStateCellContent(nextState, positions.next);
+
+      if (next && next.value === tile.value && !next.merged) {
+        nextState.grid.cells[positions.next.x][positions.next.y] = {
+          position: { x: positions.next.x, y: positions.next.y },
+          value: tile.value * 2,
+          merged: true
+        };
+        nextState.grid.cells[cell.x][cell.y] = null;
+        nextState.score += tile.value * 2;
+
+        if (tile.value * 2 === 2048) {
+          nextState.won = true;
+        }
+
+        moved = true;
+      } else if (!self.positionsEqual(cell, positions.farthest)) {
+        nextState.grid.cells[positions.farthest.x][positions.farthest.y] = {
+          position: { x: positions.farthest.x, y: positions.farthest.y },
+          value: tile.value
+        };
+        nextState.grid.cells[cell.x][cell.y] = null;
+        moved = true;
+      }
+    });
+  });
+
+  self.clearStateMergeFlags(nextState);
+  nextState.over = moved ? !self.movesAvailableFromState(nextState) : nextState.over;
+
+  return {
+    moved: moved,
+    state: nextState
+  };
+};
+
+GameManager.prototype.getStateCellContent = function (state, cell) {
+  if (this.withinBounds(cell, state.grid.size)) {
+    return state.grid.cells[cell.x][cell.y];
+  }
+
+  return null;
+};
+
+GameManager.prototype.findFarthestStatePosition = function (state, cell, vector) {
+  var previous;
+
+  do {
+    previous = cell;
+    cell = { x: previous.x + vector.x, y: previous.y + vector.y };
+  } while (this.withinBounds(cell, state.grid.size) &&
+           !this.getStateCellContent(state, cell));
+
+  return {
+    farthest: previous,
+    next: cell
+  };
+};
+
+GameManager.prototype.movesAvailableFromState = function (state) {
+  return this.availableCellsFromState(state).length || this.tileMatchesAvailableFromState(state);
+};
+
+GameManager.prototype.tileMatchesAvailableFromState = function (state) {
+  for (var x = 0; x < state.grid.size; x++) {
+    for (var y = 0; y < state.grid.size; y++) {
+      var tile = this.getStateCellContent(state, { x: x, y: y });
+
+      if (!tile) {
+        continue;
+      }
+
+      for (var direction = 0; direction < 4; direction++) {
+        var vector = this.getVector(direction);
+        var other = this.getStateCellContent(state, { x: x + vector.x, y: y + vector.y });
+
+        if (other && other.value === tile.value) {
+          return true;
+        }
+      }
+    }
+  }
+
+  return false;
+};
+
+GameManager.prototype.clearStateMergeFlags = function (state) {
+  for (var x = 0; x < state.grid.size; x++) {
+    for (var y = 0; y < state.grid.size; y++) {
+      if (state.grid.cells[x][y]) {
+        delete state.grid.cells[x][y].merged;
+      }
+    }
+  }
+};
+
+GameManager.prototype.withinBounds = function (position, size) {
+  var limit = size || this.size;
+  return position.x >= 0 && position.x < limit &&
+         position.y >= 0 && position.y < limit;
 };
 
 // Get the vector representing the chosen direction

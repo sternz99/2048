@@ -28,8 +28,13 @@
 
     <div class="above-game">
       <p class="game-intro">Join the numbers and get to the <strong>2048 tile!</strong></p>
-      <a class="restart-button">New Game</a>
+      <div class="game-controls">
+        <a class="ai-button">Start AI</a>
+        <a class="restart-button">New Game</a>
+      </div>
     </div>
+
+    <p class="ai-status">AI stopped</p>
 
     <div class="game-container">
       <div class="game-message">
@@ -94,6 +99,8 @@
   <script src="js/tile.js"></script>
   <script src="js/local_storage_manager.js"></script>
   <script src="js/game_manager.js"></script>
+  <script src="js/game_simulator.js"></script>
+  <script src="js/ai_manager.js"></script>
   <script src="js/application.js"></script>
 </body>
 </html>

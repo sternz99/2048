@@ -3,6 +3,8 @@ function HTMLActuator() {
   this.scoreContainer   = document.querySelector(".score-container");
   this.bestContainer    = document.querySelector(".best-container");
   this.messageContainer = document.querySelector(".game-message");
+  this.aiButton         = document.querySelector(".ai-button");
+  this.aiStatusLabel    = document.querySelector(".ai-status");
 
   this.score = 0;
 }
@@ -23,6 +25,7 @@ HTMLActuator.prototype.actuate = function (grid, metadata) {
 
     self.updateScore(metadata.score);
     self.updateBestScore(metadata.bestScore);
+    self.updateAI(metadata.aiEnabled, metadata.aiStatus);
 
     if (metadata.terminated) {
       if (metadata.over) {
@@ -33,6 +36,16 @@ HTMLActuator.prototype.actuate = function (grid, metadata) {
     }
 
   });
+};
+
+HTMLActuator.prototype.updateAI = function (enabled, status) {
+  if (this.aiButton) {
+    this.aiButton.textContent = enabled ? "Stop AI" : "Start AI";
+  }
+
+  if (this.aiStatusLabel) {
+    this.aiStatusLabel.textContent = status || "AI stopped";
+  }
 };
 
 // Continues the game (both restart and keep playing)
