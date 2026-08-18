@@ -81,6 +81,8 @@ KeyboardInputManager.prototype.listen = function () {
   this.bindButtonPress(".ai-button", this.toggleAI);
   this.bindSelectChange(".ai-speed-select", "setAILevel");
   this.bindSelectChange(".ai-strategy-select", "setAIStrategy");
+  this.bindRangeInput("#ai-heuristic-bias", "setAIConfig", "heuristicBias");
+  this.bindRangeInput("#ai-expectimax-depth", "setAIConfig", "expectimaxDepth");
 
   // Respond to swipe events
   var touchStartClientX, touchStartClientY;
@@ -169,5 +171,19 @@ KeyboardInputManager.prototype.bindSelectChange = function (selector, eventName)
   var self = this;
   select.addEventListener("change", function (event) {
     self.emit(eventName, event.target.value);
+  });
+};
+
+KeyboardInputManager.prototype.bindRangeInput = function (selector, eventName, configKey) {
+  var input = document.querySelector(selector);
+  if (!input) {
+    return;
+  }
+
+  var self = this;
+  input.addEventListener("input", function (event) {
+    var payload = {};
+    payload[configKey] = event.target.value;
+    self.emit(eventName, payload);
   });
 };

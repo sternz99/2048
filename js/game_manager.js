@@ -16,6 +16,7 @@ function GameManager(size, InputManager, Actuator, StorageManager) {
   this.inputManager.on("toggleAI", this.toggleAI.bind(this));
   this.inputManager.on("setAILevel", this.setAILevel.bind(this));
   this.inputManager.on("setAIStrategy", this.setAIStrategy.bind(this));
+  this.inputManager.on("setAIConfig", this.setAIConfig.bind(this));
 
   this.setup();
 }
@@ -56,6 +57,12 @@ GameManager.prototype.setAILevel = function (level) {
 GameManager.prototype.setAIStrategy = function (strategy) {
   if (this.aiManager) {
     this.aiManager.setStrategy(strategy);
+  }
+};
+
+GameManager.prototype.setAIConfig = function (config) {
+  if (this.aiManager) {
+    this.aiManager.setConfig(config);
   }
 };
 

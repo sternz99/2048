@@ -15,6 +15,10 @@ function AIManager(gameManager) {
     heuristic: "Greedy Heuristic",
     expectimax: "Expectimax Search"
   };
+  this.settings = {
+    heuristicBias: 1,
+    expectimaxDepth: 2
+  };
 }
 
 AIManager.prototype.start = function () {
@@ -82,6 +86,24 @@ AIManager.prototype.setSpeed = function (speed) {
     }
     this.gameManager.setAiStatus(true, "AI running (" + this.getStrategyLabel() + ")");
     this.scheduleNextMove();
+  }
+};
+
+AIManager.prototype.setConfig = function (config) {
+  if (!config || typeof config !== "object") {
+    return;
+  }
+
+  if (config.heuristicBias !== undefined) {
+    this.settings.heuristicBias = this.clamp(Number(config.heuristicBias), 0.5, 2);
+  }
+
+  if (config.expectimaxDepth !== undefined) {
+    this.settings.expectimaxDepth = this.clamp(Math.round(Number(config.expectimaxDepth)), 1, 4);
+  }
+
+  if (this.running) {
+    this.gameManager.setAiStatus(true, "AI running (" + this.getStrategyLabel() + ")");
   }
 };
 
@@ -263,13 +285,15 @@ AIManager.prototype.evaluateState = function (state) {
   var cornerBonus = this.computeCornerBonus(values, maxTile);
   var mergePotential = this.computeMergePotential(values);
 
-  return emptyCells * 320 +
-    smoothness * 4 +
-    monotonicity * 12 +
-    maxTile * 2 +
-    cornerBonus * 6 +
-    mergePotential * 20 +
-    state.score;
+  var heuristicBias = this.settings.heuristicBias || 1;
+
+  return emptyCells * 320 * heuristicBias +
+    smoothness * 4 * heuristicBias +
+    monotonicity * 12 * heuristicBias +
+    maxTile * 2 * heuristicBias +
+    cornerBonus * 6 * heuristicBias +
+    mergePotential * 20 * heuristicBias +
+    state.score * heuristicBias;
 };
 
 AIManager.prototype.computeSmoothness = function (values) {
@@ -387,16 +411,17 @@ AIManager.prototype.computeMergePotential = function (values) {
 AIManager.prototype.getSearchDepth = function () {
   var emptyCells = this.gameManager.grid.availableCells().length;
   var baseDepth = emptyCells >= 10 ? 3 : 2;
+  var tunedDepth = Math.min(4, Math.max(1, this.settings.expectimaxDepth));
 
   if (this.speed === "slow") {
-    return Math.min(4, baseDepth + 1);
+    return Math.min(4, Math.max(1, tunedDepth + 1));
   }
 
   if (this.speed === "fast") {
-    return Math.max(1, baseDepth - 1);
+    return Math.max(1, Math.min(4, tunedDepth - 1));
   }
 
-  return baseDepth;
+  return Math.min(4, Math.max(1, tunedDepth + baseDepth - 2));
 };
 
 AIManager.prototype.getMoveDelay = function () {
@@ -424,4 +449,8 @@ AIManager.prototype.sampleCells = function (cells, state) {
 
 AIManager.prototype.log2 = function (value) {
   return Math.log(value) / Math.log(2);
+};
+
+AIManager.prototype.clamp = function (value, min, max) {
+  return Math.min(max, Math.max(min, value));
 };

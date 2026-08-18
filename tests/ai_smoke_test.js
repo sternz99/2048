@@ -189,6 +189,22 @@ function testHeuristicStrategyFindsLegalMove() {
   assert(aiManager.getStrategyLabel() === "Greedy Heuristic", "expected heuristic to report Greedy Heuristic");
 }
 
+function testConfigurableStrategySettings() {
+  const context = createHarness();
+  const gameManager = new context.GameManager(
+    4,
+    context.KeyboardInputManager,
+    context.HTMLActuator,
+    context.LocalStorageManager
+  );
+  const aiManager = new context.AIManager(gameManager);
+
+  aiManager.setConfig({ heuristicBias: 1.7, expectimaxDepth: 3 });
+
+  assert(aiManager.settings.heuristicBias === 1.7, "expected heuristic bias to update");
+  assert(aiManager.settings.expectimaxDepth === 3, "expected expectimax depth to update");
+}
+
 function testNoLegalMoveReturnsNull() {
   const context = createHarness();
   const gameManager = new context.GameManager(
@@ -238,6 +254,7 @@ function run() {
   testAddTileDoesNotMutateOriginal();
   testExpectimaxFindsLegalMove();
   testHeuristicStrategyFindsLegalMove();
+  testConfigurableStrategySettings();
   testNoLegalMoveReturnsNull();
   testAIMoveDoesNotPauseItself();
   console.log("ai smoke tests passed");
