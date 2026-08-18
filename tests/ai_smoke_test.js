@@ -172,10 +172,56 @@ function testExpectimaxFindsLegalMove() {
   assert([0, 1, 2, 3].indexOf(move) !== -1, "expected expectimax to return a legal direction");
 }
 
+function testNoLegalMoveReturnsNull() {
+  const context = createHarness();
+  const gameManager = new context.GameManager(
+    4,
+    context.KeyboardInputManager,
+    context.HTMLActuator,
+    context.LocalStorageManager
+  );
+  const aiManager = new context.AIManager(gameManager);
+
+  const noMoveBoard = [
+    [tile(0, 0, 2), tile(1, 0, 4), tile(2, 0, 2), tile(3, 0, 4)],
+    [tile(0, 1, 4), tile(1, 1, 2), tile(2, 1, 4), tile(3, 1, 2)],
+    [tile(0, 2, 2), tile(1, 2, 4), tile(2, 2, 2), tile(3, 2, 4)],
+    [tile(0, 3, 4), tile(1, 3, 2), tile(2, 3, 4), tile(3, 3, 2)]
+  ];
+
+  const state = createState(noMoveBoard, 0);
+  gameManager.grid = new context.Grid(4, noMoveBoard);
+  const move = aiManager.findBestMove(2);
+
+  assert(move === null || move === undefined, "expected no legal moves to be treated as terminal state");
+  assert(typeof aiManager.expectimaxMove(state, 2) === "number", "expected terminal board evaluation to still return a numeric score");
+}
+
+function testAIMoveDoesNotPauseItself() {
+  const context = createHarness();
+  const gameManager = new context.GameManager(
+    4,
+    context.KeyboardInputManager,
+    context.HTMLActuator,
+    context.LocalStorageManager
+  );
+  const aiManager = new context.AIManager(gameManager);
+
+  gameManager.setAIManager(aiManager);
+  aiManager.running = true;
+  aiManager.setAiStatus = function () {};
+
+  gameManager.move(1, true);
+
+  assert(aiManager.running === true, "expected AI to remain running after its own move");
+}
+
 function run() {
   testSimulateMoveMerge();
   testAddTileDoesNotMutateOriginal();
   testExpectimaxFindsLegalMove();
+  testNoLegalMoveReturnsNull();
+  testAIMoveDoesNotPauseItself();
   console.log("ai smoke tests passed");
 }
 

@@ -4,6 +4,12 @@ function AIManager(gameManager) {
   this.timer = null;
   this.baseMoveDelay = 90;
   this.busy = false;
+  this.speed = "normal";
+  this.speedProfiles = {
+    slow: 150,
+    normal: 90,
+    fast: 60
+  };
 }
 
 AIManager.prototype.start = function () {
@@ -33,6 +39,23 @@ AIManager.prototype.toggle = function () {
     this.stop();
   } else {
     this.start();
+  }
+};
+
+AIManager.prototype.setSpeed = function (speed) {
+  if (!this.speedProfiles[speed]) {
+    return;
+  }
+
+  this.speed = speed;
+
+  if (this.running) {
+    if (this.timer !== null) {
+      window.clearTimeout(this.timer);
+      this.timer = null;
+    }
+    this.gameManager.setAiStatus(true, "AI running");
+    this.scheduleNextMove();
   }
 };
 
@@ -77,7 +100,7 @@ AIManager.prototype.step = function () {
     return;
   }
 
-  this.gameManager.move(bestMove);
+  this.gameManager.move(bestMove, true);
 
   if (this.running) {
     this.gameManager.setAiStatus(true, "AI running");
@@ -304,30 +327,32 @@ AIManager.prototype.computeMergePotential = function (values) {
 
 AIManager.prototype.getSearchDepth = function () {
   var emptyCells = this.gameManager.grid.availableCells().length;
+  var baseDepth = emptyCells >= 10 ? 3 : 2;
 
-  if (emptyCells >= 8) {
-    return 4;
+  if (this.speed === "slow") {
+    return Math.min(4, baseDepth + 1);
   }
 
-  if (emptyCells >= 5) {
-    return 3;
+  if (this.speed === "fast") {
+    return Math.max(1, baseDepth - 1);
   }
 
-  return 2;
+  return baseDepth;
 };
 
 AIManager.prototype.getMoveDelay = function () {
   var emptyCells = this.gameManager.grid.availableCells().length;
+  var baseDelay = this.speedProfiles[this.speed] || this.speedProfiles.normal;
 
   if (emptyCells <= 2) {
-    return this.baseMoveDelay + 50;
+    return baseDelay + 75;
   }
 
   if (emptyCells <= 5) {
-    return this.baseMoveDelay + 25;
+    return baseDelay + 35;
   }
 
-  return this.baseMoveDelay;
+  return baseDelay;
 };
 
 AIManager.prototype.sampleCells = function (cells, state) {

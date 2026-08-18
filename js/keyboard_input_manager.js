@@ -79,6 +79,7 @@ KeyboardInputManager.prototype.listen = function () {
   this.bindButtonPress(".restart-button", this.restart);
   this.bindButtonPress(".keep-playing-button", this.keepPlaying);
   this.bindButtonPress(".ai-button", this.toggleAI);
+  this.bindSelectChange(".ai-speed-select", "setAILevel");
 
   // Respond to swipe events
   var touchStartClientX, touchStartClientY;
@@ -151,6 +152,21 @@ KeyboardInputManager.prototype.toggleAI = function (event) {
 
 KeyboardInputManager.prototype.bindButtonPress = function (selector, fn) {
   var button = document.querySelector(selector);
+  if (!button) {
+    return;
+  }
   button.addEventListener("click", fn.bind(this));
   button.addEventListener(this.eventTouchend, fn.bind(this));
+};
+
+KeyboardInputManager.prototype.bindSelectChange = function (selector, eventName) {
+  var select = document.querySelector(selector);
+  if (!select) {
+    return;
+  }
+
+  var self = this;
+  select.addEventListener("change", function (event) {
+    self.emit(eventName, event.target.value);
+  });
 };

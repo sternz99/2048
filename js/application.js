@@ -3,5 +3,7 @@ window.requestAnimationFrame(function () {
   var gameManager = new GameManager(4, KeyboardInputManager, HTMLActuator, LocalStorageManager);
   var aiManager = new AIManager(gameManager);
 
+  window.gameManager = gameManager;
+  window.aiManager = aiManager;
   gameManager.setAIManager(aiManager);
 });
