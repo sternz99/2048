@@ -31,6 +31,17 @@ Changes and improvements are more than welcome! Feel free to fork and open a pul
 
 You can find the same information in the [contributing guide.](https://github.com/gabrielecirulli/2048/blob/master/CONTRIBUTING.md)
 
+## AI autoplay mode
+
+This branch includes an experimental AI autoplay mode with a strategy selector for both available approaches:
+
+- Greedy Heuristic
+- Expectimax Search
+
+The implementation lives in `js/ai_manager.js`, with simulator helpers in `js/game_simulator.js` and browser controls in `index.html`/`style/main.css`.
+
+For more detail, see [docs/ai-autoplay.md](docs/ai-autoplay.md), [docs/ai-strategy-guide.md](docs/ai-strategy-guide.md), and [docs/ai-strategy-plan.md](docs/ai-strategy-plan.md).
+
 ## License
 2048 is licensed under the [MIT license.](https://github.com/gabrielecirulli/2048/blob/master/LICENSE.txt)
 

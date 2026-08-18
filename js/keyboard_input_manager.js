@@ -55,13 +55,16 @@ KeyboardInputManager.prototype.listen = function () {
                     event.shiftKey;
     var mapped    = map[event.which];
 
-    // Ignore the event if it's happening in a text field
-    if (self.targetIsInput(event)) return;
-
     if (!modifiers) {
       if (mapped !== undefined) {
         event.preventDefault();
         self.emit("move", mapped);
+        return;
+      }
+
+      if (event.which === 32) {
+        event.preventDefault();
+        self.emit("toggleAI");
       }
     }
 
@@ -75,6 +78,11 @@ KeyboardInputManager.prototype.listen = function () {
   this.bindButtonPress(".retry-button", this.restart);
   this.bindButtonPress(".restart-button", this.restart);
   this.bindButtonPress(".keep-playing-button", this.keepPlaying);
+  this.bindButtonPress(".ai-button", this.toggleAI);
+  this.bindSelectChange(".ai-speed-select", "setAILevel");
+  this.bindSelectChange(".ai-strategy-select", "setAIStrategy");
+  this.bindRangeInput("#ai-heuristic-bias", "setAIConfig", "heuristicBias");
+  this.bindRangeInput("#ai-expectimax-depth", "setAIConfig", "expectimaxDepth");
 
   // Respond to swipe events
   var touchStartClientX, touchStartClientY;
@@ -82,9 +90,8 @@ KeyboardInputManager.prototype.listen = function () {
 
   gameContainer.addEventListener(this.eventTouchstart, function (event) {
     if ((!window.navigator.msPointerEnabled && event.touches.length > 1) ||
-        event.targetTouches.length > 1 ||
-        self.targetIsInput(event)) {
-      return; // Ignore if touching with more than 1 finger or touching input
+        event.targetTouches.length > 1) {
+      return; // Ignore if touching with more than 1 finger
     }
 
     if (window.navigator.msPointerEnabled) {
@@ -104,9 +111,8 @@ KeyboardInputManager.prototype.listen = function () {
 
   gameContainer.addEventListener(this.eventTouchend, function (event) {
     if ((!window.navigator.msPointerEnabled && event.touches.length > 0) ||
-        event.targetTouches.length > 0 ||
-        self.targetIsInput(event)) {
-      return; // Ignore if still touching with one or more fingers or input
+        event.targetTouches.length > 0) {
+      return; // Ignore if still touching with one or more fingers
     }
 
     var touchEndClientX, touchEndClientY;
@@ -142,12 +148,61 @@ KeyboardInputManager.prototype.keepPlaying = function (event) {
   this.emit("keepPlaying");
 };
 
+KeyboardInputManager.prototype.toggleAI = function (event) {
+  event.preventDefault();
+  this.emit("toggleAI");
+};
+
 KeyboardInputManager.prototype.bindButtonPress = function (selector, fn) {
   var button = document.querySelector(selector);
+  if (!button) {
+    return;
+  }
   button.addEventListener("click", fn.bind(this));
   button.addEventListener(this.eventTouchend, fn.bind(this));
 };
 
-KeyboardInputManager.prototype.targetIsInput = function (event) {
-  return event.target.tagName.toLowerCase() === "input";
+KeyboardInputManager.prototype.bindSelectChange = function (selector, eventName) {
+  var select = document.querySelector(selector);
+  if (!select) {
+    return;
+  }
+
+  var self = this;
+  select.addEventListener("change", function (event) {
+    self.emit(eventName, event.target.value);
+  });
+};
+
+KeyboardInputManager.prototype.updateRangeOutput = function (input, configKey) {
+  var output = document.querySelector("output[for='" + input.id + "']");
+  if (!output) {
+    return;
+  }
+
+  var value = Number(input.value);
+
+  if (configKey === "heuristicBias") {
+    output.textContent = value.toFixed(1) + "x";
+    return;
+  }
+
+  output.textContent = String(Math.round(value));
+};
+
+KeyboardInputManager.prototype.bindRangeInput = function (selector, eventName, configKey) {
+  var input = document.querySelector(selector);
+  if (!input) {
+    return;
+  }
+
+  var self = this;
+  this.updateRangeOutput(input, configKey);
+
+  input.addEventListener("input", function (event) {
+    var payload = {};
+    payload[configKey] = event.target.value;
+    self.updateRangeOutput(event.target, configKey);
+    self.emit(eventName, payload);
+  });
 };
