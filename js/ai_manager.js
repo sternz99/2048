@@ -12,8 +12,8 @@ function AIManager(gameManager) {
     fast: 60
   };
   this.strategyLabels = {
-    heuristic: "Option A",
-    expectimax: "Option B"
+    heuristic: "Greedy Heuristic",
+    expectimax: "Expectimax Search"
   };
 }
 

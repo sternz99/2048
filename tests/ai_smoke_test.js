@@ -186,7 +186,7 @@ function testHeuristicStrategyFindsLegalMove() {
   const move = aiManager.findBestMove(1);
 
   assert([0, 1, 2, 3].indexOf(move) !== -1, "expected heuristic strategy to return a legal direction");
-  assert(aiManager.getStrategyLabel() === "Option A", "expected heuristic to report Option A");
+  assert(aiManager.getStrategyLabel() === "Greedy Heuristic", "expected heuristic to report Greedy Heuristic");
 }
 
 function testNoLegalMoveReturnsNull() {

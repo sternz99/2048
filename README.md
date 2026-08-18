@@ -35,8 +35,8 @@ You can find the same information in the [contributing guide.](https://github.co
 
 This branch includes an experimental AI autoplay mode with a strategy selector for both available approaches:
 
-- Option A: a greedy heuristic policy
-- Option B: an expectimax search-based policy
+- Greedy Heuristic
+- Expectimax Search
 
 The implementation lives in `js/ai_manager.js`, with simulator helpers in `js/game_simulator.js` and browser controls in `index.html`/`style/main.css`.
 

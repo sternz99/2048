@@ -3,8 +3,8 @@
 ## Goal
 Allow the user to choose between two autoplay strategies before starting the AI:
 
-- Option A: heuristic greedy policy
-- Option B: expectimax search-based policy
+- Greedy Heuristic
+- Expectimax Search
 
 ## Scope
 - Keep the live game loop and board state logic intact.
@@ -22,5 +22,5 @@ Allow the user to choose between two autoplay strategies before starting the AI:
 ## Acceptance criteria
 - The user can select either strategy from the UI before starting AI autoplay.
 - Start AI behaves correctly for both strategies without freezing or auto-stopping unexpectedly.
-- The default strategy remains Option B for the current behavior.
+- The default strategy remains Expectimax Search for the current behavior.
 - Smoke tests pass for both strategy paths.
