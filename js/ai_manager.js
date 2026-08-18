@@ -5,10 +5,15 @@ function AIManager(gameManager) {
   this.baseMoveDelay = 90;
   this.busy = false;
   this.speed = "normal";
+  this.strategy = "expectimax";
   this.speedProfiles = {
     slow: 150,
     normal: 90,
     fast: 60
+  };
+  this.strategyLabels = {
+    heuristic: "Option A",
+    expectimax: "Option B"
   };
 }
 
@@ -18,7 +23,7 @@ AIManager.prototype.start = function () {
   }
 
   this.running = true;
-  this.gameManager.setAiStatus(true, "AI running");
+  this.gameManager.setAiStatus(true, "AI running (" + this.getStrategyLabel() + ")");
   this.scheduleNextMove();
 };
 
@@ -42,6 +47,27 @@ AIManager.prototype.toggle = function () {
   }
 };
 
+AIManager.prototype.getStrategyLabel = function () {
+  return this.strategyLabels[this.strategy] || this.strategyLabels.expectimax;
+};
+
+AIManager.prototype.setStrategy = function (strategy) {
+  if (!this.strategyLabels[strategy]) {
+    return;
+  }
+
+  this.strategy = strategy;
+
+  if (this.running) {
+    if (this.timer !== null) {
+      window.clearTimeout(this.timer);
+      this.timer = null;
+    }
+    this.gameManager.setAiStatus(true, "AI running (" + this.getStrategyLabel() + ")");
+    this.scheduleNextMove();
+  }
+};
+
 AIManager.prototype.setSpeed = function (speed) {
   if (!this.speedProfiles[speed]) {
     return;
@@ -54,7 +80,7 @@ AIManager.prototype.setSpeed = function (speed) {
       window.clearTimeout(this.timer);
       this.timer = null;
     }
-    this.gameManager.setAiStatus(true, "AI running");
+    this.gameManager.setAiStatus(true, "AI running (" + this.getStrategyLabel() + ")");
     this.scheduleNextMove();
   }
 };
@@ -89,9 +115,9 @@ AIManager.prototype.step = function () {
 
   this.busy = true;
   searchDepth = this.getSearchDepth();
-  this.gameManager.setAiStatus(true, "AI thinking (depth " + searchDepth + ")");
+  this.gameManager.setAiStatus(true, "AI thinking (" + this.getStrategyLabel() + ", depth " + searchDepth + ")");
 
-  bestMove = this.findBestMove(searchDepth);
+  bestMove = this.getBestMoveForCurrentStrategy(searchDepth);
   this.busy = false;
 
   if (bestMove === null || bestMove === undefined) {
@@ -103,12 +129,45 @@ AIManager.prototype.step = function () {
   this.gameManager.move(bestMove, true);
 
   if (this.running) {
-    this.gameManager.setAiStatus(true, "AI running");
+    this.gameManager.setAiStatus(true, "AI running (" + this.getStrategyLabel() + ")");
     this.scheduleNextMove();
   }
 };
 
+AIManager.prototype.getBestMoveForCurrentStrategy = function (depth) {
+  return this.findBestMove(depth);
+};
+
+AIManager.prototype.findHeuristicMove = function () {
+  var bestDirection = null;
+  var bestScore = -Infinity;
+  var directions = [0, 1, 2, 3];
+  var currentState = this.gameManager.serialize();
+
+  for (var i = 0; i < directions.length; i++) {
+    var direction = directions[i];
+    var result = this.gameManager.simulateMove(currentState, direction);
+    var score;
+
+    if (!result.moved) {
+      continue;
+    }
+
+    score = this.evaluateState(result.state);
+    if (score > bestScore) {
+      bestScore = score;
+      bestDirection = direction;
+    }
+  }
+
+  return bestDirection;
+};
+
 AIManager.prototype.findBestMove = function (depth) {
+  if (this.strategy === "heuristic") {
+    return this.findHeuristicMove();
+  }
+
   var bestDirection = null;
   var bestScore = -Infinity;
   var directions = [0, 1, 2, 3];

@@ -80,6 +80,7 @@ KeyboardInputManager.prototype.listen = function () {
   this.bindButtonPress(".keep-playing-button", this.keepPlaying);
   this.bindButtonPress(".ai-button", this.toggleAI);
   this.bindSelectChange(".ai-speed-select", "setAILevel");
+  this.bindSelectChange(".ai-strategy-select", "setAIStrategy");
 
   // Respond to swipe events
   var touchStartClientX, touchStartClientY;

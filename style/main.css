@@ -523,6 +523,7 @@ hr {
   gap: 8px;
   align-items: center; }
 
+.ai-strategy-control,
 .ai-speed-control {
   display: inline-flex;
   align-items: center;
@@ -531,6 +532,7 @@ hr {
   font-size: 14px;
   line-height: 1; }
 
+.ai-strategy-select,
 .ai-speed-select {
   font: inherit;
   padding: 8px 10px;

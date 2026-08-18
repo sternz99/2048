@@ -33,9 +33,14 @@ You can find the same information in the [contributing guide.](https://github.co
 
 ## AI autoplay mode
 
-This branch includes an experimental AI autoplay mode that uses an expectimax search to choose the best legal move and continue until the game reaches a terminal state. The implementation lives in `js/ai_manager.js`, with simulator helpers in `js/game_simulator.js` and browser controls in `index.html`/`style/main.css`.
+This branch includes an experimental AI autoplay mode with a strategy selector for both available approaches:
 
-For more detail, see [docs/ai-autoplay.md](docs/ai-autoplay.md).
+- Option A: a greedy heuristic policy
+- Option B: an expectimax search-based policy
+
+The implementation lives in `js/ai_manager.js`, with simulator helpers in `js/game_simulator.js` and browser controls in `index.html`/`style/main.css`.
+
+For more detail, see [docs/ai-autoplay.md](docs/ai-autoplay.md) and [docs/ai-strategy-plan.md](docs/ai-strategy-plan.md).
 
 ## License
 2048 is licensed under the [MIT license.](https://github.com/gabrielecirulli/2048/blob/master/LICENSE.txt)
