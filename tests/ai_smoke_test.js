@@ -189,6 +189,92 @@ function testHeuristicStrategyFindsLegalMove() {
   assert(aiManager.getStrategyLabel() === "Greedy Heuristic", "expected heuristic to report Greedy Heuristic");
 }
 
+function testHeuristicBiasChangesMovePreference() {
+  const context = createHarness();
+  const gameManager = new context.GameManager(
+    4,
+    context.KeyboardInputManager,
+    context.HTMLActuator,
+    context.LocalStorageManager
+  );
+  const aiManager = new context.AIManager(gameManager);
+  const cells = createEmptyCells();
+  const rows = [
+    [0, 256, 0, 512],
+    [0, 256, 8, 8],
+    [128, 0, 0, 4],
+    [0, 2, 16, 8]
+  ];
+
+  for (let y = 0; y < rows.length; y++) {
+    for (let x = 0; x < rows[y].length; x++) {
+      if (rows[y][x]) {
+        cells[x][y] = tile(x, y, rows[y][x]);
+      }
+    }
+  }
+
+  gameManager.grid = new context.Grid(4, cells);
+  gameManager.score = 8192;
+  aiManager.setStrategy("heuristic");
+  aiManager.setConfig({ heuristicBias: 0.5 });
+  const immediateScoreMove = aiManager.findBestMove(1);
+  aiManager.setConfig({ heuristicBias: 2 });
+  const boardQualityMove = aiManager.findBestMove(1);
+  const immediateResult = gameManager.simulateMove(gameManager.serialize(), immediateScoreMove);
+  const qualityResult = gameManager.simulateMove(gameManager.serialize(), boardQualityMove);
+
+  assert(immediateScoreMove === 0, "expected low bias to prefer the immediate high-value merge");
+  assert(boardQualityMove === 1, "expected high bias to prefer the higher-potential board");
+  assert(immediateResult.state.score > qualityResult.state.score, "expected the low-bias move to gain more immediate score");
+  assert(
+    aiManager.computeMergePotential(gameManager.getStateValues(qualityResult.state)) >
+      aiManager.computeMergePotential(gameManager.getStateValues(immediateResult.state)),
+    "expected the high-bias move to preserve more merge potential"
+  );
+}
+
+function testLateGameProgressEmphasizesBoardStructure() {
+  const context = createHarness();
+  const gameManager = new context.GameManager(
+    4,
+    context.KeyboardInputManager,
+    context.HTMLActuator,
+    context.LocalStorageManager
+  );
+  const aiManager = new context.AIManager(gameManager);
+  const cells = createEmptyCells();
+  const rows = [
+    [64, 0, 64, 0],
+    [16, 64, 256, 32],
+    [0, 2, 0, 0],
+    [0, 0, 0, 1024]
+  ];
+
+  for (let y = 0; y < rows.length; y++) {
+    for (let x = 0; x < rows[y].length; x++) {
+      if (rows[y][x]) {
+        cells[x][y] = tile(x, y, rows[y][x]);
+      }
+    }
+  }
+
+  gameManager.grid = new context.Grid(4, cells);
+  aiManager.setStrategy("heuristic");
+  gameManager.score = 0;
+  const earlyMove = aiManager.findBestMove(1);
+  gameManager.score = 18432;
+  const lateMove = aiManager.findBestMove(1);
+  const lateResult = gameManager.simulateMove(gameManager.serialize(), lateMove);
+
+  assert(earlyMove === 2, "expected early play to prefer the immediate board shape");
+  assert(lateMove === 1, "expected late play to preserve the higher-ceiling position");
+  assert(
+    gameManager.availableCellsFromState(lateResult.state).length === 9,
+    "expected the late-game move to create additional board space"
+  );
+}
+
 function testConfigurableStrategySettings() {
   const context = createHarness();
   const gameManager = new context.GameManager(
@@ -275,6 +361,8 @@ function run() {
   testAddTileDoesNotMutateOriginal();
   testExpectimaxFindsLegalMove();
   testHeuristicStrategyFindsLegalMove();
+  testHeuristicBiasChangesMovePreference();
+  testLateGameProgressEmphasizesBoardStructure();
   testConfigurableStrategySettings();
   testRangeOutputDisplaysCurrentValue();
   testNoLegalMoveReturnsNull();
