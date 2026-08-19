@@ -579,6 +579,17 @@ hr {
   text-align: right;
   display: inline-block; }
 
+.ai-auto-restart-control {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #8f7a66;
+  font-size: 14px;
+  line-height: 1;
+  white-space: nowrap; }
+  .ai-auto-restart-control input {
+    accent-color: #8f7a66; }
+
 .ai-button {
   display: inline-block;
   background: #8f7a66;
@@ -653,6 +664,7 @@ hr {
 
   .ai-strategy-control,
   .ai-speed-control,
+  .ai-auto-restart-control,
   .ai-tuning-control {
     width: 100%;
     justify-content: space-between; }
