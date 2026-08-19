@@ -312,6 +312,80 @@ function testRangeOutputDisplaysCurrentValue() {
   assert(depthOutput.textContent === "3", "expected depth slider output to show the current value");
 }
 
+function testAutoRestartWhenGameEnds() {
+  const context = createHarness();
+  const gameManager = new context.GameManager(
+    4,
+    context.KeyboardInputManager,
+    context.HTMLActuator,
+    context.LocalStorageManager
+  );
+  const aiManager = new context.AIManager(gameManager);
+
+  gameManager.setAIManager(aiManager);
+  aiManager.running = true;
+  aiManager.setAutoRestart(true);
+
+  let restarted = 0;
+  const originalRestart = gameManager.restart.bind(gameManager);
+  gameManager.restart = function () {
+    restarted += 1;
+    originalRestart();
+  };
+
+  gameManager.over = true;
+  aiManager.step();
+
+  assert(restarted === 1, "expected AI to restart the game when auto-restart is enabled");
+  assert(aiManager.running === true, "expected AI to resume after auto-restarting");
+  aiManager.stop();
+}
+
+function testStaleActuateDoesNotReshowGameOver() {
+  const context = createHarness();
+  const queue = [];
+  context.window.requestAnimationFrame = function (fn) {
+    queue.push(fn);
+  };
+
+  const actuator = new context.HTMLActuator();
+  const message = context.document.querySelector(".game-message");
+  const addedClasses = [];
+  message.classList = {
+    add: function (className) {
+      addedClasses.push(className);
+    },
+    remove: function () {}
+  };
+
+  actuator.actuate(new context.Grid(4), {
+    score: 0,
+    over: true,
+    won: false,
+    bestScore: 0,
+    terminated: true,
+    aiEnabled: false,
+    aiStatus: "AI stopped"
+  });
+
+  actuator.continueGame();
+  actuator.actuate(new context.Grid(4), {
+    score: 0,
+    over: false,
+    won: false,
+    bestScore: 0,
+    terminated: false,
+    aiEnabled: false,
+    aiStatus: "AI stopped"
+  });
+
+  queue.forEach(function (fn) {
+    fn();
+  });
+
+  assert(addedClasses.indexOf("game-over") === -1, "expected stale game-over render to be ignored after restart");
+}
+
 function testNoLegalMoveReturnsNull() {
   const context = createHarness();
   const gameManager = new context.GameManager(
@@ -365,6 +439,8 @@ function run() {
   testLateGameProgressEmphasizesBoardStructure();
   testConfigurableStrategySettings();
   testRangeOutputDisplaysCurrentValue();
+  testAutoRestartWhenGameEnds();
+  testStaleActuateDoesNotReshowGameOver();
   testNoLegalMoveReturnsNull();
   testAIMoveDoesNotPauseItself();
   console.log("ai smoke tests passed");

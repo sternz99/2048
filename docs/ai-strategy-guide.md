@@ -54,6 +54,10 @@ Suggested starting points:
 - Purpose: controls how quickly the AI makes successive moves between decisions.
 - Practical effect: this changes the pacing of the autoplay loop rather than the search logic itself.
 
+## Auto restart option
+
+The AI panel includes an `Auto restart` toggle. When enabled, the AI will automatically start a fresh game as soon as the current round ends. This is useful when you want to benchmark a strategy over many games or let the AI keep playing without manual intervention.
+
 ## Recommended default setup
 
 For most players, the best starting configuration is:
@@ -61,6 +65,7 @@ For most players, the best starting configuration is:
 - Heuristic bias: 1.0x
 - Search depth: 2
 - Speed: Normal
+- Auto restart: off by default
 
 This provides a strong balance between responsiveness and playing quality without making the browser feel sluggish.
 
@@ -68,8 +73,10 @@ If you want a more aggressive, faster comparison run, try:
 - Strategy: Greedy Heuristic
 - Heuristic bias: 1.2x
 - Speed: Fast
+- Auto restart: on for repeated runs
 
 If you want a more deliberate, stronger run, try:
 - Strategy: Expectimax Search
 - Search depth: 3
 - Speed: Slow
+- Auto restart: on if you want to watch many games in sequence

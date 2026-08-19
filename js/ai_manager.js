@@ -6,6 +6,7 @@ function AIManager(gameManager) {
   this.busy = false;
   this.speed = "normal";
   this.strategy = "expectimax";
+  this.restartOnEnd = false;
   this.speedProfiles = {
     slow: 150,
     normal: 90,
@@ -107,6 +108,10 @@ AIManager.prototype.setConfig = function (config) {
   }
 };
 
+AIManager.prototype.setAutoRestart = function (enabled) {
+  this.restartOnEnd = !!enabled;
+};
+
 AIManager.prototype.scheduleNextMove = function () {
   var self = this;
   var delay = this.getMoveDelay();
@@ -130,6 +135,13 @@ AIManager.prototype.step = function () {
   }
 
   if (this.gameManager.isGameTerminated()) {
+    if (this.restartOnEnd) {
+      this.stop();
+      this.gameManager.restart();
+      this.start();
+      return;
+    }
+
     this.stop();
     this.gameManager.setAiStatus(false, "Game over");
     return;
