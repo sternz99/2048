@@ -7,12 +7,18 @@ function HTMLActuator() {
   this.aiStatusLabel    = document.querySelector(".ai-status");
 
   this.score = 0;
+  this.renderVersion = 0;
 }
 
 HTMLActuator.prototype.actuate = function (grid, metadata) {
   var self = this;
+  var renderVersion = ++this.renderVersion;
 
   window.requestAnimationFrame(function () {
+    if (renderVersion !== self.renderVersion) {
+      return;
+    }
+
     self.clearContainer(self.tileContainer);
 
     grid.cells.forEach(function (column) {
