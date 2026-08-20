@@ -5,6 +5,8 @@ function HTMLActuator() {
   this.messageContainer = document.querySelector(".game-message");
   this.aiButton         = document.querySelector(".ai-button");
   this.aiStatusLabel    = document.querySelector(".ai-status");
+  this.aiControlsPanel  = document.querySelector(".ai-controls-panel");
+  this.controlsToggleButton = document.querySelector(".controls-toggle-button");
 
   this.score = 0;
   this.renderVersion = 0;
@@ -46,13 +48,24 @@ HTMLActuator.prototype.actuate = function (grid, metadata) {
 
 HTMLActuator.prototype.updateAI = function (enabled, status) {
   if (this.aiButton) {
-    this.aiButton.textContent = enabled ? "Stop AI" : "Start AI";
+    this.aiButton.textContent = enabled ? "AI running ..." : "Start AI";
     this.aiButton.setAttribute("aria-pressed", enabled ? "true" : "false");
   }
 
   if (this.aiStatusLabel) {
-    this.aiStatusLabel.textContent = status || "AI stopped";
+    this.aiStatusLabel.textContent = enabled ? "AI running ..." : "";
   }
+};
+
+HTMLActuator.prototype.updateControlsCollapse = function (collapsed) {
+  if (!this.aiControlsPanel || !this.controlsToggleButton) {
+    return;
+  }
+
+  this.aiControlsPanel.classList.toggle("collapsed", collapsed);
+  this.controlsToggleButton.textContent = collapsed ? "▸" : "▾";
+  this.controlsToggleButton.setAttribute("aria-expanded", collapsed ? "false" : "true");
+  this.controlsToggleButton.setAttribute("aria-label", collapsed ? "Expand parameter controls" : "Collapse parameter controls");
 };
 
 // Continues the game (both restart and keep playing)

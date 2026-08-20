@@ -27,42 +27,50 @@
     </div>
 
     <div class="above-game">
-      <p class="game-intro">Join the numbers and get to the <strong>2048 tile!</strong></p>
+      <div>
+        <p class="game-intro">Join the numbers and get to the <strong>2048 tile!</strong></p>
+      </div>
       <div class="game-controls">
         <a class="ai-button" aria-label="Toggle AI autoplay">Start AI</a>
-        <label class="ai-strategy-control" for="ai-strategy-select">
-          <span>Strategy</span>
-          <select id="ai-strategy-select" class="ai-strategy-select" aria-label="AI strategy">
-            <option value="heuristic">Greedy Heuristic</option>
-            <option value="expectimax" selected>Expectimax Search</option>
-          </select>
-        </label>
-        <label class="ai-speed-control" for="ai-speed-select">
-          <span>Speed</span>
-          <select id="ai-speed-select" class="ai-speed-select" aria-label="AI speed">
-            <option value="slow">Slow</option>
-            <option value="normal" selected>Normal</option>
-            <option value="fast">Fast</option>
-          </select>
-        </label>
-        <label class="ai-auto-restart-control" for="ai-auto-restart">
-          <input id="ai-auto-restart" type="checkbox" aria-label="Automatically restart after game over" />
-          <span>Auto restart</span>
-        </label>
         <a class="restart-button">New Game</a>
+        <a class="controls-toggle-button" aria-label="Collapse parameter controls" aria-expanded="true">▾</a>
       </div>
 
-      <div class="ai-tuning-panel">
-        <label class="ai-tuning-control" for="ai-heuristic-bias">
-          <span>Heuristic bias</span>
-          <input id="ai-heuristic-bias" class="ai-tuning-slider" type="range" min="0.5" max="2" step="0.1" value="1" />
-          <output for="ai-heuristic-bias" class="ai-tuning-value">1.0x</output>
-        </label>
-        <label class="ai-tuning-control" for="ai-expectimax-depth">
-          <span>Search depth</span>
-          <input id="ai-expectimax-depth" class="ai-tuning-slider" type="range" min="1" max="4" step="1" value="2" />
-          <output for="ai-expectimax-depth" class="ai-tuning-value">2</output>
-        </label>
+      <div class="ai-controls-panel">
+        <div class="ai-controls-row">
+          <label class="ai-strategy-control" for="ai-strategy-select">
+            <span>Strategy</span>
+            <select id="ai-strategy-select" class="ai-strategy-select" aria-label="AI strategy">
+              <option value="heuristic">Greedy Heuristic</option>
+              <option value="expectimax" selected>Expectimax Search</option>
+            </select>
+          </label>
+          <label class="ai-speed-control" for="ai-speed-select">
+            <span>Speed</span>
+            <select id="ai-speed-select" class="ai-speed-select" aria-label="AI speed">
+              <option value="slow">Slow</option>
+              <option value="normal" selected>Normal</option>
+              <option value="fast">Fast</option>
+            </select>
+          </label>
+          <label class="ai-auto-restart-control" for="ai-auto-restart">
+            <input id="ai-auto-restart" type="checkbox" aria-label="Automatically restart after game over" />
+            <span>Auto restart</span>
+          </label>
+        </div>
+
+        <div class="ai-tuning-panel">
+          <label class="ai-tuning-control" for="ai-heuristic-bias">
+            <span>Heuristic bias</span>
+            <input id="ai-heuristic-bias" class="ai-tuning-slider" type="range" min="0.5" max="2" step="0.1" value="1" />
+            <output for="ai-heuristic-bias" class="ai-tuning-value">1.0x</output>
+          </label>
+          <label class="ai-tuning-control" for="ai-expectimax-depth">
+            <span>Search depth</span>
+            <input id="ai-expectimax-depth" class="ai-tuning-slider" type="range" min="1" max="4" step="1" value="2" />
+            <output for="ai-expectimax-depth" class="ai-tuning-value">2</output>
+          </label>
+        </div>
       </div>
     </div>
 
