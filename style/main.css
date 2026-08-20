@@ -534,6 +534,37 @@ hr {
   max-width: 100%;
   margin-left: auto; }
 
+.controls-toggle-button {
+  display: inline-block;
+  min-width: 40px;
+  background: #8f7a66;
+  border-radius: 3px;
+  padding: 0 12px;
+  text-decoration: none;
+  color: #f9f6f2;
+  height: 40px;
+  line-height: 42px;
+  text-align: center;
+  font-size: 18px;
+  cursor: pointer; }
+
+.ai-controls-panel {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 12px; }
+
+.ai-controls-panel.collapsed {
+  display: none; }
+
+.ai-controls-row {
+  width: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+  align-items: center; }
+
 .ai-strategy-control,
 .ai-speed-control {
   display: inline-flex;
@@ -658,9 +689,17 @@ hr {
     width: 100%;
     float: none;
     display: flex;
-    flex-direction: column;
-    align-items: stretch;
+    justify-content: space-between;
+    align-items: center;
     gap: 6px; }
+
+  .controls-toggle-button {
+    min-width: 38px;
+    padding: 0 10px; }
+
+  .ai-controls-row {
+    flex-direction: column;
+    align-items: stretch; }
 
   .ai-strategy-control,
   .ai-speed-control,
