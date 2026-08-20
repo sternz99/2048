@@ -9,6 +9,7 @@ function GameManager(size, InputManager, Actuator, StorageManager) {
   this.aiEnabled      = false;
   this.aiStatus       = "AI stopped";
   this.aiManager      = null;
+  this.aiControlsCollapsed = false;
 
   this.inputManager.on("move", this.move.bind(this));
   this.inputManager.on("restart", this.restart.bind(this));
@@ -18,6 +19,7 @@ function GameManager(size, InputManager, Actuator, StorageManager) {
   this.inputManager.on("setAIStrategy", this.setAIStrategy.bind(this));
   this.inputManager.on("setAIRestartOnEnd", this.setAIRestartOnEnd.bind(this));
   this.inputManager.on("setAIConfig", this.setAIConfig.bind(this));
+  this.inputManager.on("toggleControlsPanel", this.toggleControlsPanel.bind(this));
 
   this.setup();
 }
@@ -84,6 +86,11 @@ GameManager.prototype.setAiStatus = function (enabled, status) {
   this.aiEnabled = enabled;
   this.aiStatus = status;
   this.actuate();
+};
+
+GameManager.prototype.toggleControlsPanel = function () {
+  this.aiControlsCollapsed = !this.aiControlsCollapsed;
+  this.actuator.updateControlsCollapse(this.aiControlsCollapsed);
 };
 
 // Return true if the game is lost, or has won and the user hasn't kept playing

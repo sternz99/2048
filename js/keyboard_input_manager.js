@@ -79,6 +79,7 @@ KeyboardInputManager.prototype.listen = function () {
   this.bindButtonPress(".restart-button", this.restart);
   this.bindButtonPress(".keep-playing-button", this.keepPlaying);
   this.bindButtonPress(".ai-button", this.toggleAI);
+  this.bindButtonPress(".controls-toggle-button", this.toggleControlsPanel);
   this.bindSelectChange(".ai-speed-select", "setAILevel");
   this.bindSelectChange(".ai-strategy-select", "setAIStrategy");
   this.bindCheckboxChange("#ai-auto-restart", "setAIRestartOnEnd");
@@ -152,6 +153,11 @@ KeyboardInputManager.prototype.keepPlaying = function (event) {
 KeyboardInputManager.prototype.toggleAI = function (event) {
   event.preventDefault();
   this.emit("toggleAI");
+};
+
+KeyboardInputManager.prototype.toggleControlsPanel = function (event) {
+  event.preventDefault();
+  this.emit("toggleControlsPanel");
 };
 
 KeyboardInputManager.prototype.bindButtonPress = function (selector, fn) {
