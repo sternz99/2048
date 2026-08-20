@@ -1,12 +1,13 @@
 # 2048 AI autoplay
 
-This project includes an optional expectimax-based autoplay mode that can play the game without manual input.
+This project includes optional autoplay modes that can play the game without manual input.
 
 ## Design
 
-The project supports two autoplay strategies, which the user can pick from the UI before starting AI play:
+The project supports three autoplay strategies, which the user can pick from the UI before starting AI play:
 
 - Greedy Heuristic: a fast agent that scores each legal move immediately by board quality and tile potential.
+- Human Expert: a rule-based strategy inspired by strong human play habits (corner anchoring, snake ordering, primary-direction discipline, and avoiding destabilizing reverse moves).
 - Expectimax Search: a search-based agent that simulates candidate moves and random tile spawns to maximize expected utility.
 
 For Expectimax Search, the AI evaluates candidate moves by simulating the next board state, then applying a chance node for the random tile spawn. This is a classic expectimax approach:
@@ -21,7 +22,7 @@ The live game logic stays separate from the AI simulation layer:
 
 - `js/game_manager.js` owns the live board and movement loop.
 - `js/game_simulator.js` clones board state without mutating the active game.
-- `js/ai_manager.js` runs the expectimax search and heuristic evaluation.
+- `js/ai_manager.js` runs the strategy selector, human-expert policy, heuristic evaluation, and expectimax search.
 
 The heuristic prioritizes:
 
@@ -37,6 +38,7 @@ The heuristic prioritizes:
 The browser includes:
 
 - a Start/Stop AI button,
+- a strategy control (`Greedy Heuristic`, `Human Expert`, `Expectimax Search`),
 - a speed control (`slow`, `normal`, `fast`),
 - status text showing whether the AI is thinking, running, or stopped.
 

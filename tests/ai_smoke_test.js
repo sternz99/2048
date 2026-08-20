@@ -189,6 +189,270 @@ function testHeuristicStrategyFindsLegalMove() {
   assert(aiManager.getStrategyLabel() === "Greedy Heuristic", "expected heuristic to report Greedy Heuristic");
 }
 
+function testHumanExpertStrategyFindsLegalMove() {
+  const context = createHarness();
+  const gameManager = new context.GameManager(
+    4,
+    context.KeyboardInputManager,
+    context.HTMLActuator,
+    context.LocalStorageManager
+  );
+  const aiManager = new context.AIManager(gameManager);
+  aiManager.setStrategy("humanExpert");
+  const move = aiManager.findBestMove(1);
+
+  assert([0, 1, 2, 3].indexOf(move) !== -1, "expected human expert strategy to return a legal direction");
+  assert(aiManager.getStrategyLabel() === "Human Expert", "expected human expert to report Human Expert");
+}
+
+function testHumanExpertAvoidsForbiddenMoveWhenAlternativesExist() {
+  const context = createHarness();
+  const gameManager = new context.GameManager(
+    4,
+    context.KeyboardInputManager,
+    context.HTMLActuator,
+    context.LocalStorageManager
+  );
+  const aiManager = new context.AIManager(gameManager);
+  const cells = createEmptyCells();
+  const rows = [
+    [16, 8, 4, 2],
+    [32, 16, 8, 4],
+    [64, 32, 16, 8],
+    [0, 0, 0, 0]
+  ];
+
+  for (let y = 0; y < rows.length; y++) {
+    for (let x = 0; x < rows[y].length; x++) {
+      if (rows[y][x]) {
+        cells[x][y] = tile(x, y, rows[y][x]);
+      }
+    }
+  }
+
+  gameManager.grid = new context.Grid(4, cells);
+  aiManager.setStrategy("humanExpert");
+  const move = aiManager.findBestMove(1);
+
+  assert(move !== 0, "expected human expert to avoid Up when safer alternatives exist");
+}
+
+function testHumanExpertKeepsMaxTileAnchored() {
+  const context = createHarness();
+  const gameManager = new context.GameManager(
+    4,
+    context.KeyboardInputManager,
+    context.HTMLActuator,
+    context.LocalStorageManager
+  );
+  const aiManager = new context.AIManager(gameManager);
+  const cells = createEmptyCells();
+  const rows = [
+    [2, 4, 8, 16],
+    [4, 8, 16, 32],
+    [8, 16, 32, 64],
+    [128, 256, 512, 1024]
+  ];
+
+  for (let y = 0; y < rows.length; y++) {
+    for (let x = 0; x < rows[y].length; x++) {
+      cells[x][y] = tile(x, y, rows[y][x]);
+    }
+  }
+
+  gameManager.grid = new context.Grid(4, cells);
+  aiManager.setStrategy("humanExpert");
+  const move = aiManager.findBestMove(1);
+
+  assert(move !== 3, "expected human expert to avoid pulling the max tile away from the anchored corner");
+}
+
+function testHumanExpertPrefersBottomRowChainPressure() {
+  const context = createHarness();
+  const gameManager = new context.GameManager(
+    4,
+    context.KeyboardInputManager,
+    context.HTMLActuator,
+    context.LocalStorageManager
+  );
+  const aiManager = new context.AIManager(gameManager);
+  const cells = createEmptyCells();
+  const rows = [
+    [2, 4, 8, 16],
+    [4, 8, 16, 32],
+    [64, 128, 256, 512],
+    [2, 2, 4, 8]
+  ];
+
+  for (let y = 0; y < rows.length; y++) {
+    for (let x = 0; x < rows[y].length; x++) {
+      cells[x][y] = tile(x, y, rows[y][x]);
+    }
+  }
+
+  gameManager.grid = new context.Grid(4, cells);
+  aiManager.setStrategy("humanExpert");
+  const move = aiManager.findBestMove(1);
+
+  assert(move === 1 || move === 2, "expected human expert to favor a chain-friendly move over drifting the third row");
+}
+
+function testHumanExpertRepairsBrokenSnakeChain() {
+  const context = createHarness();
+  const gameManager = new context.GameManager(
+    4,
+    context.KeyboardInputManager,
+    context.HTMLActuator,
+    context.LocalStorageManager
+  );
+  const aiManager = new context.AIManager(gameManager);
+  const cells = createEmptyCells();
+  const rows = [
+    [2, 4, 8, 16],
+    [4, 8, 16, 32],
+    [64, 2, 128, 256],
+    [2, 4, 8, 16]
+  ];
+
+  for (let y = 0; y < rows.length; y++) {
+    for (let x = 0; x < rows[y].length; x++) {
+      cells[x][y] = tile(x, y, rows[y][x]);
+    }
+  }
+
+  gameManager.grid = new context.Grid(4, cells);
+  aiManager.setStrategy("humanExpert");
+  const move = aiManager.findBestMove(1);
+
+  assert(move !== 0, "expected human expert to prioritize repairing a broken snake chain");
+}
+
+function testHumanExpertRewardsImmediateScorePotential() {
+  const context = createHarness();
+  const gameManager = new context.GameManager(
+    4,
+    context.KeyboardInputManager,
+    context.HTMLActuator,
+    context.LocalStorageManager
+  );
+  const aiManager = new context.AIManager(gameManager);
+  const cells = createEmptyCells();
+  const rows = [
+    [2, 2, 8, 16],
+    [4, 8, 16, 32],
+    [8, 16, 32, 64],
+    [128, 256, 512, 1024]
+  ];
+
+  for (let y = 0; y < rows.length; y++) {
+    for (let x = 0; x < rows[y].length; x++) {
+      cells[x][y] = tile(x, y, rows[y][x]);
+    }
+  }
+
+  gameManager.grid = new context.Grid(4, cells);
+  aiManager.setStrategy("humanExpert");
+  const move = aiManager.findBestMove(1);
+
+  assert(move === 1 || move === 3 || move === 2, "expected human expert to keep score-producing merges in play");
+}
+
+function testHumanExpertComputesPriorityTargets() {
+  const context = createHarness();
+  const gameManager = new context.GameManager(
+    4,
+    context.KeyboardInputManager,
+    context.HTMLActuator,
+    context.LocalStorageManager
+  );
+  const aiManager = new context.AIManager(gameManager);
+  const cells = createEmptyCells();
+  const rows = [
+    [2, 4, 8, 16],
+    [4, 8, 16, 32],
+    [64, 2, 128, 256],
+    [2, 4, 8, 16]
+  ];
+
+  for (let y = 0; y < rows.length; y++) {
+    for (let x = 0; x < rows[y].length; x++) {
+      cells[x][y] = tile(x, y, rows[y][x]);
+    }
+  }
+
+  gameManager.grid = new context.Grid(4, cells);
+  const targets = aiManager.computeHumanExpertTargets(gameManager.getStateValues(gameManager.serialize()), gameManager.getStateValues(gameManager.serialize()));
+
+  assert(targets.repairChain > 0, "expected broken chain state to raise repair target priority");
+}
+
+function testHumanExpertTargetWeightsPreferRepairChain() {
+  const context = createHarness();
+  const gameManager = new context.GameManager(
+    4,
+    context.KeyboardInputManager,
+    context.HTMLActuator,
+    context.LocalStorageManager
+  );
+  const aiManager = new context.AIManager(gameManager);
+  const weights = aiManager.computeHumanExpertTargetWeights({ repairChain: 2, mergeMax: 1, keepAnchor: 1 });
+
+  assert(weights.repairChain > weights.mergeMax, "expected repair chain to have the highest target weight");
+}
+
+function testHumanExpertRunningLabelIncludesTargets() {
+  const context = createHarness();
+  const gameManager = new context.GameManager(
+    4,
+    context.KeyboardInputManager,
+    context.HTMLActuator,
+    context.LocalStorageManager
+  );
+  const aiManager = new context.AIManager(gameManager);
+  aiManager.setStrategy("humanExpert");
+  const label = aiManager.getAiRunningLabel(2);
+
+  assert(label.indexOf("targets:") !== -1, "expected running label to include target summary");
+}
+
+function testActuatorShowsAIStatusText() {
+  const context = createHarness();
+  const actuator = new context.HTMLActuator();
+  const status = context.document.querySelector(".ai-status");
+  const button = context.document.querySelector(".ai-button");
+
+  actuator.updateAI(true, "AI running (Human Expert; targets: repair chain; depth 2)");
+
+  assert(button.textContent === "AI running ...", "expected AI button to keep the generic running label");
+  assert(status.textContent.indexOf("targets:") !== -1, "expected AI status label to show the running label");
+}
+
+function testGameManagerKeepsDetailedAiStatus() {
+  const context = createHarness();
+  const gameManager = new context.GameManager(
+    4,
+    context.KeyboardInputManager,
+    context.HTMLActuator,
+    context.LocalStorageManager
+  );
+  const aiManager = new context.AIManager(gameManager);
+  gameManager.setAIManager(aiManager);
+
+  gameManager.setAiStatus(true, "AI running (Human Expert; targets: repair chain; depth 2)");
+
+  assert(gameManager.aiStatus.indexOf("targets:") !== -1, "expected game manager to preserve detailed AI status");
+}
+
+function testAiStatusStaysSingleLine() {
+  const context = createHarness();
+  const actuator = new context.HTMLActuator();
+  const status = context.document.querySelector(".ai-status");
+
+  actuator.updateAI(true, "AI running (Human Expert; targets: repair chain, merge max; depth 2)");
+
+  assert(status.textContent.indexOf("\n") === -1, "expected AI status text to remain on one line");
+}
+
 function testHeuristicBiasChangesMovePreference() {
   const context = createHarness();
   const gameManager = new context.GameManager(
@@ -310,6 +574,73 @@ function testRangeOutputDisplaysCurrentValue() {
 
   assert(heuristicOutput.textContent === "1.7x", "expected heuristic slider output to show the current value");
   assert(depthOutput.textContent === "3", "expected depth slider output to show the current value");
+}
+
+function testHumanExpertStrategyPersistsAcrossSettingsLoad() {
+  const context = createHarness();
+  const gameManager = new context.GameManager(
+    4,
+    context.KeyboardInputManager,
+    context.HTMLActuator,
+    context.LocalStorageManager
+  );
+
+  gameManager.storageManager.setAISettings({
+    strategy: "humanExpert",
+    speed: "fast",
+    autoRestart: true,
+    heuristicBias: 1.4,
+    expectimaxDepth: 3,
+    controlsCollapsed: false
+  });
+
+  gameManager.loadAISettings();
+
+  assert(gameManager.aiSettings.strategy === "humanExpert", "expected human expert strategy to load from storage");
+}
+
+function testAutoRestartResumesOnReload() {
+  const context = createHarness();
+  const gameManager = new context.GameManager(
+    4,
+    context.KeyboardInputManager,
+    context.HTMLActuator,
+    context.LocalStorageManager
+  );
+  const aiManager = new context.AIManager(gameManager);
+  gameManager.setAIManager(aiManager);
+  gameManager.storageManager.setAISettings({
+    strategy: "humanExpert",
+    speed: "normal",
+    autoRestart: true,
+    heuristicBias: 1,
+    expectimaxDepth: 2,
+    controlsCollapsed: false
+  });
+  gameManager.storageManager.setGameState({
+    grid: { size: 4, cells: (function () {
+      const cells = [];
+      for (let x = 0; x < 4; x++) {
+        cells[x] = [];
+        for (let y = 0; y < 4; y++) {
+          cells[x][y] = null;
+        }
+      }
+      cells[3][3] = { position: { x: 3, y: 3 }, value: 1024 };
+      return cells;
+    })() },
+    score: 0,
+    over: false,
+    won: false,
+    keepPlaying: false
+  });
+
+  aiManager.start = function () {
+    this.running = true;
+  };
+  gameManager.setup();
+
+  assert(aiManager.running === true, "expected AI to resume after reload when auto-restart is enabled");
 }
 
 function testAutoRestartWhenGameEnds() {
@@ -435,10 +766,24 @@ function run() {
   testAddTileDoesNotMutateOriginal();
   testExpectimaxFindsLegalMove();
   testHeuristicStrategyFindsLegalMove();
+  testHumanExpertStrategyFindsLegalMove();
+  testHumanExpertAvoidsForbiddenMoveWhenAlternativesExist();
+  testHumanExpertKeepsMaxTileAnchored();
+  testHumanExpertPrefersBottomRowChainPressure();
+  testHumanExpertRepairsBrokenSnakeChain();
+  testHumanExpertRewardsImmediateScorePotential();
+  testHumanExpertComputesPriorityTargets();
+  testHumanExpertRunningLabelIncludesTargets();
+  testActuatorShowsAIStatusText();
+  testGameManagerKeepsDetailedAiStatus();
+  testAiStatusStaysSingleLine();
+  testHumanExpertTargetWeightsPreferRepairChain();
   testHeuristicBiasChangesMovePreference();
   testLateGameProgressEmphasizesBoardStructure();
   testConfigurableStrategySettings();
   testRangeOutputDisplaysCurrentValue();
+  testHumanExpertStrategyPersistsAcrossSettingsLoad();
+  testAutoRestartResumesOnReload();
   testAutoRestartWhenGameEnds();
   testStaleActuateDoesNotReshowGameOver();
   testNoLegalMoveReturnsNull();

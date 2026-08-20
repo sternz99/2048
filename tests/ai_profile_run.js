@@ -170,10 +170,17 @@ function runProfile() {
   const seed = Number(process.argv[7] || 2048);
   const maxMoves = Number(process.argv[8] || 160);
   const speeds = requestedSpeed === "all" ? ["slow", "normal", "fast"] : [requestedSpeed];
-  const strategies = requestedStrategy === "all" ? ["heuristic", "expectimax"] : [requestedStrategy];
+  const strategies = requestedStrategy === "all" ? ["heuristic", "humanExpert", "expectimax"] : [requestedStrategy];
+  const strategyAliases = {
+    heuristic: "heuristic",
+    humanexpert: "humanExpert",
+    humanExpert: "humanExpert",
+    expectimax: "expectimax"
+  };
   const results = [];
 
-  strategies.forEach(function (strategy) {
+  strategies.forEach(function (strategyInput) {
+    var strategy = strategyAliases[strategyInput] || strategyInput;
     speeds.forEach(function (speed) {
       let totalMoves = 0;
       let totalScore = 0;

@@ -201,6 +201,12 @@ hr {
     .game-container .game-message.game-won, .game-container .game-message.game-over {
       display: block; }
 
+.ai-status {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .grid-container {
   position: absolute;
   z-index: 1; }

@@ -53,7 +53,8 @@ HTMLActuator.prototype.updateAI = function (enabled, status) {
   }
 
   if (this.aiStatusLabel) {
-    this.aiStatusLabel.textContent = enabled ? "AI running ..." : "";
+    this.aiStatusLabel.textContent = enabled ? (status || "AI running ...") : "";
+    this.aiStatusLabel.setAttribute("title", this.aiStatusLabel.textContent);
   }
 };
 
