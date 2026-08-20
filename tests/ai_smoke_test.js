@@ -400,6 +400,80 @@ function testHumanExpertTargetWeightsPreferRepairChain() {
   assert(weights.repairChain > weights.mergeMax, "expected repair chain to have the highest target weight");
 }
 
+function testHumanExpertTargetTileCanBeOutlined() {
+  const context = createHarness();
+  const gameManager = new context.GameManager(
+    4,
+    context.KeyboardInputManager,
+    context.HTMLActuator,
+    context.LocalStorageManager
+  );
+  const aiManager = new context.AIManager(gameManager);
+  const cells = createEmptyCells();
+  const rows = [
+    [2, 4, 8, 16],
+    [4, 8, 16, 32],
+    [64, 2, 128, 256],
+    [2, 4, 8, 16]
+  ];
+
+  for (let y = 0; y < rows.length; y++) {
+    for (let x = 0; x < rows[y].length; x++) {
+      cells[x][y] = tile(x, y, rows[y][x]);
+    }
+  }
+
+  gameManager.grid = new context.Grid(4, cells);
+  const target = aiManager.getHumanExpertTargetTile();
+
+  assert(target && typeof target.x === "number" && typeof target.y === "number", "expected a target tile to be identified");
+}
+
+function testHumanExpertTargetOutlineLabelIsGenerated() {
+  const context = createHarness();
+  const gameManager = new context.GameManager(
+    4,
+    context.KeyboardInputManager,
+    context.HTMLActuator,
+    context.LocalStorageManager
+  );
+  const aiManager = new context.AIManager(gameManager);
+  aiManager.setStrategy("humanExpert");
+
+  const outline = aiManager.getHumanExpertTargetOutline();
+
+  assert(outline.indexOf("target-") === 0 || outline === "", "expected target outline label to be generated");
+}
+
+function testHumanExpertStepGoalsFavorCurrentBoardIssues() {
+  const context = createHarness();
+  const gameManager = new context.GameManager(
+    4,
+    context.KeyboardInputManager,
+    context.HTMLActuator,
+    context.LocalStorageManager
+  );
+  const aiManager = new context.AIManager(gameManager);
+  const cells = createEmptyCells();
+  const rows = [
+    [2, 4, 8, 16],
+    [4, 8, 16, 32],
+    [64, 2, 128, 256],
+    [2, 4, 8, 16]
+  ];
+
+  for (let y = 0; y < rows.length; y++) {
+    for (let x = 0; x < rows[y].length; x++) {
+      cells[x][y] = tile(x, y, rows[y][x]);
+    }
+  }
+
+  gameManager.grid = new context.Grid(4, cells);
+  const stepGoals = aiManager.computeHumanExpertStepGoals(gameManager.getStateValues(gameManager.serialize()), gameManager.getStateValues(gameManager.serialize()), { repairChain: 1, mergeMax: 0, keepAnchor: 0 });
+
+  assert(stepGoals.repairChain === 1, "expected broken chain to become the immediate step goal");
+}
+
 function testHumanExpertRunningLabelIncludesTargets() {
   const context = createHarness();
   const gameManager = new context.GameManager(
@@ -599,7 +673,7 @@ function testHumanExpertStrategyPersistsAcrossSettingsLoad() {
   assert(gameManager.aiSettings.strategy === "humanExpert", "expected human expert strategy to load from storage");
 }
 
-function testAutoRestartResumesOnReload() {
+function testAutoRestartDoesNotForceResumeOnReload() {
   const context = createHarness();
   const gameManager = new context.GameManager(
     4,
@@ -635,12 +709,14 @@ function testAutoRestartResumesOnReload() {
     keepPlaying: false
   });
 
+  let started = 0;
   aiManager.start = function () {
+    started += 1;
     this.running = true;
   };
   gameManager.setup();
 
-  assert(aiManager.running === true, "expected AI to resume after reload when auto-restart is enabled");
+  assert(started === 0, "expected reload to keep AI stopped until the user starts it again");
 }
 
 function testAutoRestartWhenGameEnds() {
@@ -778,12 +854,15 @@ function run() {
   testGameManagerKeepsDetailedAiStatus();
   testAiStatusStaysSingleLine();
   testHumanExpertTargetWeightsPreferRepairChain();
+  testHumanExpertStepGoalsFavorCurrentBoardIssues();
+  testHumanExpertTargetTileCanBeOutlined();
+  testHumanExpertTargetOutlineLabelIsGenerated();
   testHeuristicBiasChangesMovePreference();
   testLateGameProgressEmphasizesBoardStructure();
   testConfigurableStrategySettings();
   testRangeOutputDisplaysCurrentValue();
   testHumanExpertStrategyPersistsAcrossSettingsLoad();
-  testAutoRestartResumesOnReload();
+  testAutoRestartDoesNotForceResumeOnReload();
   testAutoRestartWhenGameEnds();
   testStaleActuateDoesNotReshowGameOver();
   testNoLegalMoveReturnsNull();

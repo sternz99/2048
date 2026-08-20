@@ -8,8 +8,4 @@ window.requestAnimationFrame(function () {
   gameManager.setAIManager(aiManager);
   gameManager.applyAISettingsToManager(aiManager);
   gameManager.applyAISettingsToUI();
-
-  if (gameManager.aiSettings.autoRestart && gameManager.storageManager.getGameState()) {
-    aiManager.start();
-  }
 });

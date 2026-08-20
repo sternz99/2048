@@ -177,13 +177,6 @@ GameManager.prototype.setup = function () {
 
   // Update the actuator
   this.actuate();
-
-  if (this.aiSettings.autoRestart && this.aiManager && !this.aiManager.running && this.isGameTerminated()) {
-    this.keepPlaying = false;
-    this.restart();
-  } else if (this.aiSettings.autoRestart && this.aiManager && !this.aiManager.running && !this.isGameTerminated() && this.aiSettings.strategy) {
-    this.aiManager.start();
-  }
 };
 
 GameManager.prototype.applyAISettingsToUI = function () {

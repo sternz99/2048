@@ -55,6 +55,19 @@ HTMLActuator.prototype.updateAI = function (enabled, status) {
   if (this.aiStatusLabel) {
     this.aiStatusLabel.textContent = enabled ? (status || "AI running ...") : "";
     this.aiStatusLabel.setAttribute("title", this.aiStatusLabel.textContent);
+    this.aiStatusLabel.setAttribute("data-ai-status", this.aiStatusLabel.textContent);
+  }
+
+  if (this.tileContainer) {
+    this.tileContainer.setAttribute("data-ai-target", this.aiTargetLabel || "");
+  }
+};
+
+HTMLActuator.prototype.updateAITarget = function (targetLabel) {
+  this.aiTargetLabel = targetLabel || "";
+
+  if (this.tileContainer) {
+    this.tileContainer.setAttribute("data-ai-target", this.aiTargetLabel);
   }
 };
 

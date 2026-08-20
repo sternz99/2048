@@ -33,5 +33,6 @@
 - 2026-08-21: Added score-potential bonus to preserve immediate merge opportunities while maintaining the snake.
 - 2026-08-21: Added priority targets to dynamically bias repair / high-tile merge / anchor preservation.
 - 2026-08-21: Added target summary to the AI running label for Human Expert mode.
-- 2026-08-21: Added autoplay resume on refresh when auto-restart is enabled.
 - 2026-08-21: Increased repair-chain target weight above merge/anchor fallbacks.
+- 2026-08-21: Promoted broken-chain repair into an immediate step goal when present.
+- 2026-08-21: Added outline candidate for the first-priority target tile.

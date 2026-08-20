@@ -156,6 +156,7 @@ AIManager.prototype.step = function () {
   this.busy = true;
   searchDepth = this.getSearchDepth();
   this.gameManager.setAiStatus(true, this.getAiRunningLabel(searchDepth));
+  this.gameManager.actuator.updateAITarget(this.getHumanExpertTargetOutline());
 
   bestMove = this.getBestMoveForCurrentStrategy(searchDepth);
   this.busy = false;
@@ -170,6 +171,7 @@ AIManager.prototype.step = function () {
 
   if (this.running) {
     this.gameManager.setAiStatus(true, this.getAiRunningLabel(searchDepth));
+    this.gameManager.actuator.updateAITarget(this.getHumanExpertTargetOutline());
     this.scheduleNextMove();
   }
 };
@@ -303,6 +305,7 @@ AIManager.prototype.computeHumanExpertScore = function (state, direction, curren
   var snakeAlignment = this.computeSnakeAlignment(values);
   var targets = this.computeHumanExpertTargets(values, currentValues);
   var targetWeights = this.computeHumanExpertTargetWeights(targets);
+  var stepGoals = this.computeHumanExpertStepGoals(values, currentValues, targets);
   var cornerDistancePenalty = this.computeCornerDistancePenalty(values, maxTile);
   var cornerAnchorPenalty = this.computeCornerAnchorPenalty(values, maxTile);
   var chainPressureBonus = this.computeChainPressureBonus(values);
@@ -321,6 +324,9 @@ AIManager.prototype.computeHumanExpertScore = function (state, direction, curren
     targets.repairChain * targetWeights.repairChain +
     targets.mergeMax * targetWeights.mergeMax +
     targets.keepAnchor * targetWeights.keepAnchor +
+    stepGoals.repairChain * 90 +
+    stepGoals.mergeMax * 60 +
+    stepGoals.keepAnchor * 24 +
     cornerBonus * 8 +
     chainPressureBonus * 22 +
     brokenChainPenalty * 80 +
@@ -339,6 +345,41 @@ AIManager.prototype.computeHumanExpertTargetWeights = function (targets) {
     mergeMax: targets.mergeMax > 1 ? 120 : (targets.mergeMax > 0 ? 72 : 0),
     keepAnchor: targets.keepAnchor > 0 ? 48 : 0
   };
+};
+
+AIManager.prototype.computeHumanExpertStepGoals = function (values, currentValues, targets) {
+  var goals = {
+    repairChain: 0,
+    mergeMax: 0,
+    keepAnchor: 0
+  };
+  var currentMax = this.computeMaxTile(currentValues);
+  var maxTile = this.computeMaxTile(values);
+  var x;
+  var y;
+
+  if (targets.repairChain > 0) {
+    goals.repairChain = 1;
+  }
+
+  if (targets.mergeMax > 0) {
+    for (x = 0; x < values.length; x++) {
+      for (y = 0; y < values[x].length; y++) {
+        if (values[x][y] === currentMax && x + 1 < values.length && values[x + 1][y] === currentMax) {
+          goals.mergeMax = 1;
+        }
+        if (values[x][y] === currentMax && y + 1 < values[x].length && values[x][y + 1] === currentMax) {
+          goals.mergeMax = 1;
+        }
+      }
+    }
+  }
+
+  if (targets.keepAnchor > 0 && maxTile === currentMax) {
+    goals.keepAnchor = 1;
+  }
+
+  return goals;
 };
 
 AIManager.prototype.computeHumanExpertTargets = function (values, currentValues) {
@@ -407,6 +448,55 @@ AIManager.prototype.getHumanExpertTargetSummary = function () {
   }
 
   return parts.length ? parts.join(", ") : "stabilize board";
+};
+
+AIManager.prototype.getHumanExpertTargetTile = function () {
+  var state = this.gameManager.serialize();
+  var values = this.gameManager.getStateValues(state);
+  var currentValues = this.gameManager.getStateValues(state);
+  var targets = this.computeHumanExpertTargets(values, currentValues);
+  var maxTile = this.computeMaxTile(values);
+  var target = null;
+  var x;
+  var y;
+
+  if (targets.repairChain > 0) {
+    for (y = values.length - 1; y >= 0 && !target; y--) {
+      for (x = values.length - 1; x >= 1; x--) {
+        if (values[x][y] && values[x - 1][y] && values[x][y] !== values[x - 1][y]) {
+          target = { x: x, y: y, value: Math.max(values[x][y], values[x - 1][y]) };
+          break;
+        }
+      }
+    }
+  }
+
+  if (!target && targets.mergeMax > 0) {
+    for (y = values.length - 1; y >= 0 && !target; y--) {
+      for (x = values.length - 1; x >= 1; x--) {
+        if (values[x][y] === maxTile && values[x - 1][y] === maxTile) {
+          target = { x: x, y: y, value: maxTile };
+          break;
+        }
+      }
+    }
+  }
+
+  if (!target && targets.keepAnchor > 0) {
+    target = { x: values.length - 1, y: values.length - 1, value: maxTile };
+  }
+
+  return target;
+};
+
+AIManager.prototype.getHumanExpertTargetOutline = function () {
+  var target = this.getHumanExpertTargetTile();
+
+  if (!target) {
+    return "";
+  }
+
+  return "target-" + target.x + "-" + target.y + "-" + target.value;
 };
 
 AIManager.prototype.computeSnakeAlignment = function (values) {

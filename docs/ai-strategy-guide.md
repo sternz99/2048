@@ -24,7 +24,7 @@ Use this mode when:
 
 ### Human Expert
 
-The Human Expert strategy applies practical human play rules directly in move selection. It favors keeping the highest tile anchored in the bottom-right corner, following a monotonic snake-like ordering with alternating rows so smaller tiles can chain-merge upward into the corner, preferring Right/Down moves, and treating Up as close to a forbidden move unless board safety demands it. It now also computes three priority targets from the board state and dynamically biases scoring toward the highest-priority one: repair a broken chain, complete the next high-tile merge, or preserve the anchor / snake order. Repair-chain gets the heaviest target weight so the AI fixes structure first before chasing the next merge. The active target list is also shown in the AI running label because the status text now mirrors the current AI label instead of only showing a generic running message. It still rewards compact merge chains, penalizes max-tile drift, gives extra weight to lower-row chain pressure, explicitly raises priority when a small tile breaks the snake chain, and preserves immediate merge score opportunities as part of the tuning.
+The Human Expert strategy applies practical human play rules directly in move selection. It favors keeping the highest tile anchored in the bottom-right corner, following a monotonic snake-like ordering with alternating rows so smaller tiles can chain-merge upward into the corner, preferring Right/Down moves, and treating Up as close to a forbidden move unless board safety demands it. It now also computes three priority targets from the board state and dynamically biases scoring toward the highest-priority one: repair a broken chain, complete the next high-tile merge, or preserve the anchor / snake order. Repair-chain gets the heaviest target weight so the AI fixes structure first before chasing the next merge, and if the current board already shows a broken chain, that target becomes the immediate step goal. The active target list is also shown in the AI running label because the status text now mirrors the current AI label instead of only showing a generic running message, and the first-priority target can be outlined as a compact overlay badge on the board. It still rewards compact merge chains, penalizes max-tile drift, gives extra weight to lower-row chain pressure, explicitly raises priority when a small tile breaks the snake chain, and preserves immediate merge score opportunities as part of the tuning.
 
 Use this mode when:
 - you want behavior that is easier to reason about and inspect than search trees,
@@ -65,7 +65,7 @@ Suggested starting points:
 
 ## Auto restart option
 
-The AI panel includes an `Auto restart` toggle. When enabled, the AI will automatically start a fresh game as soon as the current round ends, and the AI will resume after a page refresh if a saved game is present. This is useful when you want to benchmark a strategy over many games or let the AI keep playing without manual intervention.
+The AI panel includes an `Auto restart` toggle. When enabled, the AI will automatically start a fresh game as soon as the current round ends. This is useful when you want to benchmark a strategy over many games or let the AI keep playing without manual intervention.
 
 ## Recommended default setup
 

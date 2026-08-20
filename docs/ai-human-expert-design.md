@@ -34,8 +34,10 @@ For each legal move:
   3. preserve the anchor / snake order.
 - Dynamically bias the scoring toward the highest-priority target while keeping the lower two as fallback goals.
 - Use higher weights for the repair-chain target than the merge target, and keep anchor preservation as a lighter fallback.
+- Promote the repair target into a concrete step goal when the board already shows a broken chain, so the agent fixes the local issue before chasing the larger target.
 - Surface the active target list in the AI running label for user visibility.
-- Auto-resume autoplay after refresh when `autoRestart` is enabled and a saved game exists.
+- Provide a target tile outline candidate for the first-priority goal when possible.
+- Render a compact board overlay badge for the outline candidate so the user can spot it at a glance.
 - Score with weighted terms:
   - empty cells
   - max-tile-in-home-corner bonus
