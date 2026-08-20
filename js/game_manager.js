@@ -10,6 +10,14 @@ function GameManager(size, InputManager, Actuator, StorageManager) {
   this.aiStatus       = "AI stopped";
   this.aiManager      = null;
   this.aiControlsCollapsed = false;
+  this.aiSettings = {
+    strategy: "expectimax",
+    speed: "normal",
+    autoRestart: false,
+    heuristicBias: 1,
+    expectimaxDepth: 2,
+    controlsCollapsed: false
+  };
 
   this.inputManager.on("move", this.move.bind(this));
   this.inputManager.on("restart", this.restart.bind(this));
@@ -54,24 +62,33 @@ GameManager.prototype.toggleAI = function () {
 GameManager.prototype.setAILevel = function (level) {
   if (this.aiManager) {
     this.aiManager.setSpeed(level);
+    this.aiSettings.speed = this.aiManager.speed;
+    this.persistAISettings();
   }
 };
 
 GameManager.prototype.setAIStrategy = function (strategy) {
   if (this.aiManager) {
     this.aiManager.setStrategy(strategy);
+    this.aiSettings.strategy = this.aiManager.strategy;
+    this.persistAISettings();
   }
 };
 
 GameManager.prototype.setAIConfig = function (config) {
   if (this.aiManager) {
     this.aiManager.setConfig(config);
+    this.aiSettings.heuristicBias = this.aiManager.settings.heuristicBias;
+    this.aiSettings.expectimaxDepth = this.aiManager.settings.expectimaxDepth;
+    this.persistAISettings();
   }
 };
 
 GameManager.prototype.setAIRestartOnEnd = function (enabled) {
   if (this.aiManager) {
     this.aiManager.setAutoRestart(enabled);
+    this.aiSettings.autoRestart = this.aiManager.restartOnEnd;
+    this.persistAISettings();
   }
 };
 
@@ -90,7 +107,42 @@ GameManager.prototype.setAiStatus = function (enabled, status) {
 
 GameManager.prototype.toggleControlsPanel = function () {
   this.aiControlsCollapsed = !this.aiControlsCollapsed;
+  this.aiSettings.controlsCollapsed = this.aiControlsCollapsed;
+  this.persistAISettings();
   this.actuator.updateControlsCollapse(this.aiControlsCollapsed);
+};
+
+GameManager.prototype.persistAISettings = function () {
+  this.storageManager.setAISettings(this.aiSettings);
+};
+
+GameManager.prototype.loadAISettings = function () {
+  var savedSettings = this.storageManager.getAISettings();
+
+  if (!savedSettings) {
+    return;
+  }
+
+  if (savedSettings.strategy === "heuristic" || savedSettings.strategy === "expectimax") {
+    this.aiSettings.strategy = savedSettings.strategy;
+  }
+
+  if (savedSettings.speed === "slow" || savedSettings.speed === "normal" || savedSettings.speed === "fast") {
+    this.aiSettings.speed = savedSettings.speed;
+  }
+
+  this.aiSettings.autoRestart = !!savedSettings.autoRestart;
+  this.aiSettings.controlsCollapsed = !!savedSettings.controlsCollapsed;
+
+  if (savedSettings.heuristicBias !== undefined) {
+    this.aiSettings.heuristicBias = Math.min(2, Math.max(0.5, Number(savedSettings.heuristicBias) || 1));
+  }
+
+  if (savedSettings.expectimaxDepth !== undefined) {
+    this.aiSettings.expectimaxDepth = Math.min(4, Math.max(1, Math.round(Number(savedSettings.expectimaxDepth) || 2)));
+  }
+
+  this.aiControlsCollapsed = this.aiSettings.controlsCollapsed;
 };
 
 // Return true if the game is lost, or has won and the user hasn't kept playing
@@ -101,6 +153,8 @@ GameManager.prototype.isGameTerminated = function () {
 // Set up the game
 GameManager.prototype.setup = function () {
   var previousState = this.storageManager.getGameState();
+
+  this.loadAISettings();
 
   // Reload the game from a previous game if present
   if (previousState) {
@@ -123,6 +177,53 @@ GameManager.prototype.setup = function () {
 
   // Update the actuator
   this.actuate();
+};
+
+GameManager.prototype.applyAISettingsToUI = function () {
+  var strategySelect = document.querySelector("#ai-strategy-select");
+  var speedSelect = document.querySelector("#ai-speed-select");
+  var autoRestartInput = document.querySelector("#ai-auto-restart");
+  var heuristicBiasInput = document.querySelector("#ai-heuristic-bias");
+  var expectimaxDepthInput = document.querySelector("#ai-expectimax-depth");
+
+  if (strategySelect) {
+    strategySelect.value = this.aiSettings.strategy;
+  }
+
+  if (speedSelect) {
+    speedSelect.value = this.aiSettings.speed;
+  }
+
+  if (autoRestartInput) {
+    autoRestartInput.checked = this.aiSettings.autoRestart;
+  }
+
+  if (heuristicBiasInput) {
+    heuristicBiasInput.value = String(this.aiSettings.heuristicBias);
+  }
+
+  if (expectimaxDepthInput) {
+    expectimaxDepthInput.value = String(this.aiSettings.expectimaxDepth);
+  }
+
+  this.inputManager.updateRangeOutput(heuristicBiasInput, "heuristicBias");
+  this.inputManager.updateRangeOutput(expectimaxDepthInput, "expectimaxDepth");
+  this.actuator.updateControlsCollapse(this.aiControlsCollapsed);
+};
+
+GameManager.prototype.applyAISettingsToManager = function (aiManager) {
+  if (!aiManager) {
+    return;
+  }
+
+  aiManager.setStrategy(this.aiSettings.strategy);
+  aiManager.setSpeed(this.aiSettings.speed);
+  aiManager.setAutoRestart(this.aiSettings.autoRestart);
+  aiManager.setConfig({
+    heuristicBias: this.aiSettings.heuristicBias,
+    expectimaxDepth: this.aiSettings.expectimaxDepth
+  });
+  this.aiControlsCollapsed = this.aiSettings.controlsCollapsed;
 };
 
 // Set up the initial tiles to start the game with
