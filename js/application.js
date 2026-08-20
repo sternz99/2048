@@ -6,4 +6,6 @@ window.requestAnimationFrame(function () {
   window.gameManager = gameManager;
   window.aiManager = aiManager;
   gameManager.setAIManager(aiManager);
+  gameManager.applyAISettingsToManager(aiManager);
+  gameManager.applyAISettingsToUI();
 });

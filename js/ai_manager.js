@@ -134,6 +134,11 @@ AIManager.prototype.step = function () {
     return;
   }
 
+  if (this.gameManager.won && !this.gameManager.keepPlaying) {
+    this.gameManager.keepPlaying = true;
+    this.gameManager.actuator.continueGame();
+  }
+
   if (this.gameManager.isGameTerminated()) {
     if (this.restartOnEnd) {
       this.stop();
